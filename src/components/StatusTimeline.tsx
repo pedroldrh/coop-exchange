@@ -6,7 +6,6 @@ import { STATUS_LABELS } from '../lib/constants';
 const STATUS_FLOW: RequestStatus[] = [
   'requested',
   'accepted',
-  'paid',
   'ordered',
   'picked_up',
   'completed',

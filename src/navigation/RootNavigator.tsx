@@ -34,6 +34,13 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 export function RootNavigator() {
   const { user, loading, profileComplete } = useAuth();
 
+  console.log('[RootNavigator] render:', {
+    hasUser: !!user,
+    loading,
+    profileComplete,
+    showing: loading ? 'loading' : !user ? 'Auth' : !profileComplete ? 'ProfileSetup' : 'MainTabs',
+  });
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>

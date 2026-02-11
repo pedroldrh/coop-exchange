@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../types/navigation';
@@ -17,7 +16,7 @@ import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
 import { StarDisplay } from '../../components/StarDisplay';
 import { PostCard } from '../../components/PostCard';
-import { getInitials } from '../../lib/utils';
+import { getInitials, showAlert, showConfirm } from '../../lib/utils';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -51,21 +50,18 @@ export function ProfileScreen({ navigation }: Props) {
     navigation.navigate('EditProfile');
   }, [navigation]);
 
-  const handleSignOut = useCallback(() => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign Out',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await signOut();
-          } catch (err: any) {
-            Alert.alert('Error', err?.message ?? 'Failed to sign out');
-          }
-        },
-      },
-    ]);
+  const handleSignOut = useCallback(async () => {
+    const confirmed = await showConfirm(
+      'Sign Out',
+      'Are you sure you want to sign out?',
+    );
+    if (!confirmed) return;
+
+    try {
+      await signOut();
+    } catch (err: any) {
+      showAlert('Error', err?.message ?? 'Failed to sign out');
+    }
   }, [signOut]);
 
   if (isLoading || !profile) {
@@ -77,8 +73,8 @@ export function ProfileScreen({ navigation }: Props) {
     profile.role_preference === 'admin'
       ? 'Admin'
       : profile.role_preference === 'seller'
-        ? 'Seller'
-        : 'Buyer';
+        ? 'Freshman'
+        : 'Upperclassman';
 
   return (
     <ScrollView
@@ -123,20 +119,10 @@ export function ProfileScreen({ navigation }: Props) {
         </View>
       </Card>
 
-      {/* Venmo Handle */}
-      {profile.venmo_handle && (
-        <Card style={styles.venmoCard}>
-          <View style={styles.venmoRow}>
-            <Text style={styles.venmoLabel}>Venmo</Text>
-            <Text style={styles.venmoHandle}>{profile.venmo_handle}</Text>
-          </View>
-        </Card>
-      )}
-
-      {/* My Posts */}
+      {/* My Swipe Shares */}
       <View style={styles.postsSection}>
         <View style={styles.postsSectionHeader}>
-          <Text style={styles.sectionTitle}>My Posts</Text>
+          <Text style={styles.sectionTitle}>My Swipe Shares</Text>
           {hasMorePosts && (
             <Pressable onPress={() => {}}>
               <Text style={styles.seeAllText}>See all</Text>

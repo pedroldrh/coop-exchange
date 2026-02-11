@@ -59,8 +59,8 @@ export function FeedScreen({ navigation }: Props) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>📦</Text>
-        <Text style={styles.emptyTitle}>No posts available</Text>
-        <Text style={styles.emptySubtitle}>Check back later!</Text>
+        <Text style={styles.emptyTitle}>No swipes available right now</Text>
+        <Text style={styles.emptySubtitle}>Check back soon!</Text>
       </View>
     );
   }, [isLoading]);

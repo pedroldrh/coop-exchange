@@ -34,7 +34,7 @@ export function MainTabs() {
         name="FeedTab"
         component={FeedStack}
         options={{
-          tabBarLabel: 'Feed',
+          tabBarLabel: 'Swipes',
           tabBarIcon: ({ color }) => (
             <Text style={[styles.tabIcon, { color }]}>&#9776;</Text>
           ),
@@ -44,7 +44,7 @@ export function MainTabs() {
         name="OrdersTab"
         component={OrdersStack}
         options={{
-          tabBarLabel: 'My Orders',
+          tabBarLabel: 'My Requests',
           tabBarIcon: ({ color }) => (
             <Text style={[styles.tabIcon, { color }]}>&#9993;</Text>
           ),

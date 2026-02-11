@@ -1,3 +1,4 @@
+import { Alert, Platform } from 'react-native';
 import { DISPUTE_WINDOW_HOURS, EMAIL_DOMAIN } from './constants';
 
 /**
@@ -79,4 +80,40 @@ export function isWithinDisputeWindow(completedAt: string): boolean {
   const now = Date.now();
   const windowMs = DISPUTE_WINDOW_HOURS * 60 * 60 * 1000;
   return now - completed <= windowMs;
+}
+
+/* ------------------------------------------------------------------ */
+/* Cross-platform alert helpers                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Show a simple alert message. Uses `window.alert` on web (where
+ * React Native's `Alert.alert` is a no-op) and `Alert.alert` on native.
+ */
+export function showAlert(title: string, message?: string): void {
+  if (Platform.OS === 'web') {
+    window.alert(message ? `${title}\n${message}` : title);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
+/**
+ * Show a confirmation dialog. Returns `true` when the user confirms.
+ * Uses `window.confirm` on web and `Alert.alert` with Cancel/OK on native.
+ */
+export function showConfirm(
+  title: string,
+  message: string,
+): Promise<boolean> {
+  if (Platform.OS === 'web') {
+    return Promise.resolve(window.confirm(`${title}\n${message}`));
+  }
+
+  return new Promise((resolve) => {
+    Alert.alert(title, message, [
+      { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+      { text: 'OK', style: 'destructive', onPress: () => resolve(true) },
+    ]);
+  });
 }

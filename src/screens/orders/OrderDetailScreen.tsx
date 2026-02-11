@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Platform,
   RefreshControl,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -37,6 +38,7 @@ import { ChatSection } from '../../components/ChatSection';
 import { RatingModal } from '../../components/RatingModal';
 import { STATUS_LABELS } from '../../lib/constants';
 import type { RequestStatus } from '../../lib/constants';
+import { showAlert } from '../../lib/utils';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'OrderDetail'>;
 
@@ -111,7 +113,7 @@ export function OrderDetailScreen({ route }: Props) {
   // Determine user role
   const isBuyer = user?.id === request?.buyer_id;
   const isSeller = user?.id === request?.seller_id;
-  const roleLabel = isBuyer ? 'Buyer' : isSeller ? 'Seller' : '';
+  const roleLabel = isBuyer ? 'Requester' : isSeller ? 'Freshman' : '';
 
   // Auto-show rating modal after completion
   const hasRated =
@@ -128,8 +130,13 @@ export function OrderDetailScreen({ route }: Props) {
     }
   }, [request?.status, hasRated, isBuyer, isSeller]);
 
-  // Image selection helper
+  // Image selection helper (cross-platform)
   const selectImage = useCallback((): Promise<string | null> => {
+    if (Platform.OS === 'web') {
+      // On web, skip the action sheet and go straight to file picker
+      return pickImage().catch(() => null);
+    }
+
     return new Promise((resolve) => {
       Alert.alert('Upload Proof', 'Choose a method', [
         {
@@ -231,7 +238,7 @@ export function OrderDetailScreen({ route }: Props) {
             break;
         }
       } catch (err: any) {
-        Alert.alert('Error', err?.message ?? 'Action failed');
+        showAlert('Error', err?.message ?? 'Action failed');
       } finally {
         setActionLoading(false);
       }
@@ -255,7 +262,7 @@ export function OrderDetailScreen({ route }: Props) {
   // Cancel submission
   const handleSubmitCancel = useCallback(async () => {
     if (!cancelReason.trim()) {
-      Alert.alert('Error', 'Please provide a reason');
+      showAlert('Error', 'Please provide a reason');
       return;
     }
     try {
@@ -266,14 +273,14 @@ export function OrderDetailScreen({ route }: Props) {
       setShowCancelModal(false);
       setCancelReason('');
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to cancel');
+      showAlert('Error', err?.message ?? 'Failed to cancel');
     }
   }, [requestId, cancelReason, cancelRequest]);
 
   // Dispute submission
   const handleSubmitDispute = useCallback(async () => {
     if (!disputeReason.trim()) {
-      Alert.alert('Error', 'Please provide a reason');
+      showAlert('Error', 'Please provide a reason');
       return;
     }
 
@@ -287,7 +294,7 @@ export function OrderDetailScreen({ route }: Props) {
       setDisputeReason('');
       setDisputeDescription('');
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to open dispute');
+      showAlert('Error', err?.message ?? 'Failed to open dispute');
     }
   }, [requestId, disputeReason, disputeDescription, openDispute]);
 
@@ -302,7 +309,7 @@ export function OrderDetailScreen({ route }: Props) {
         });
         setShowRatingModal(false);
       } catch (err: any) {
-        Alert.alert('Error', err?.message ?? 'Failed to submit rating');
+        showAlert('Error', err?.message ?? 'Failed to submit rating');
       }
     },
     [requestId, submitRating],
@@ -333,7 +340,7 @@ export function OrderDetailScreen({ route }: Props) {
         <Card style={styles.headerCard}>
           <View style={styles.headerRow}>
             <View style={styles.headerParty}>
-              <Text style={styles.headerPartyLabel}>Buyer</Text>
+              <Text style={styles.headerPartyLabel}>Requester</Text>
               <Text style={styles.headerPartyName}>
                 {request.buyer.name ?? 'Anonymous'}
               </Text>
@@ -342,7 +349,7 @@ export function OrderDetailScreen({ route }: Props) {
               <Text style={styles.headerArrow}>{'<>'}</Text>
             </View>
             <View style={styles.headerParty}>
-              <Text style={styles.headerPartyLabel}>Seller</Text>
+              <Text style={styles.headerPartyLabel}>Freshman</Text>
               <Text style={styles.headerPartyName}>
                 {request.seller.name ?? 'Anonymous'}
               </Text>
@@ -359,13 +366,13 @@ export function OrderDetailScreen({ route }: Props) {
 
         {/* Status Timeline */}
         <Card style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Order Progress</Text>
+          <Text style={styles.sectionTitle}>Progress</Text>
           <StatusTimeline currentStatus={request.status} />
         </Card>
 
         {/* Order Info */}
         <Card style={styles.sectionCard}>
-          <Text style={styles.sectionTitle}>Order Info</Text>
+          <Text style={styles.sectionTitle}>Request Details</Text>
 
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Items</Text>
@@ -379,27 +386,12 @@ export function OrderDetailScreen({ route }: Props) {
             </View>
           )}
 
-          {request.est_total != null && (
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Est. Total</Text>
-              <Text style={styles.infoValueHighlight}>
-                ${request.est_total.toFixed(2)}
-              </Text>
-            </View>
-          )}
         </Card>
 
-        {/* Proof Images */}
-        {(request.paid_proof_path || request.ordered_proof_path) && (
+        {/* Order Proof */}
+        {request.ordered_proof_path && (
           <Card style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Proof Images</Text>
-
-            {request.paid_proof_path && (
-              <View style={styles.proofContainer}>
-                <Text style={styles.proofLabel}>Payment Proof</Text>
-                <ProofImage path={request.paid_proof_path} label="Payment Proof" />
-              </View>
-            )}
+            <Text style={styles.sectionTitle}>Order Proof</Text>
 
             {request.ordered_proof_path && (
               <View style={styles.proofContainer}>

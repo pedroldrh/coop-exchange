@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types/database';
 
@@ -99,9 +100,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ------- public API -------
 
   const signIn = useCallback(async (email: string) => {
+    const redirectTo =
+      Platform.OS === 'web'
+        ? window.location.origin
+        : undefined;
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
+      },
     });
     if (error) throw error;
   }, []);
@@ -123,15 +131,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const refreshProfile = useCallback(async () => {
-    if (session?.user) {
-      await fetchProfile(session.user.id);
+    // Read the session directly from Supabase instead of relying on the
+    // React state variable, which may hold a stale reference when this
+    // callback is invoked right after profile setup.
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const userId = currentSession?.user?.id;
+
+    if (!userId) {
+      console.warn('[AuthProvider] refreshProfile called but no active session');
+      return;
     }
-  }, [session, fetchProfile]);
+
+    console.log('[AuthProvider] refreshProfile: fetching profile for', userId);
+    const fetched = await fetchProfile(userId);
+    console.log('[AuthProvider] refreshProfile: result =', fetched);
+  }, [fetchProfile]);
 
   // ------- derived state -------
   const user = session?.user ?? null;
   const isAdmin = profile?.role_preference === 'admin';
   const profileComplete = profile !== null && profile.name !== null;
+
+  // Debug: log derived state changes so we can trace navigation decisions
+  useEffect(() => {
+    console.log('[AuthProvider] state changed:', {
+      hasUser: !!user,
+      hasProfile: !!profile,
+      profileName: profile?.name ?? null,
+      profileComplete,
+      loading,
+    });
+  }, [user, profile, profileComplete, loading]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

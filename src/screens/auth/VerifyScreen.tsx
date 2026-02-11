@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
+import { showAlert } from '../../lib/utils';
 
 /* ------------------------------------------------------------------ */
 /* Screen                                                              */
@@ -52,9 +52,9 @@ export function VerifyScreen({ route }: Props) {
     setError(null);
     try {
       await signIn(email);
-      Alert.alert('Code Sent', `A new code has been sent to ${email}.`);
+      showAlert('Code Sent', `A new code has been sent to ${email}.`);
     } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Failed to resend code.');
+      showAlert('Error', err.message ?? 'Failed to resend code.');
     } finally {
       setResending(false);
     }

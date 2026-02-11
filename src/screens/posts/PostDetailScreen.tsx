@@ -87,7 +87,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
       }
       showsVerticalScrollIndicator={false}
     >
-      {/* Seller Info Card */}
+      {/* Freshman Info Card */}
       <Card style={styles.sellerCard}>
         <View style={styles.sellerHeader}>
           <View style={styles.avatarCircle}>
@@ -106,7 +106,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
 
       {/* Post Details Card */}
       <Card style={styles.detailCard}>
-        <Text style={styles.sectionTitle}>Order Details</Text>
+        <Text style={styles.sectionTitle}>Swipe Details</Text>
 
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Capacity</Text>
@@ -122,15 +122,6 @@ export function PostDetailScreen({ route, navigation }: Props) {
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Pickup Location</Text>
             <Text style={styles.detailValue}>{post.location}</Text>
-          </View>
-        )}
-
-        {post.max_value_hint != null && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Max Order Value</Text>
-            <Text style={styles.detailValue}>
-              ${post.max_value_hint.toFixed(2)}
-            </Text>
           </View>
         )}
 
@@ -151,7 +142,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
       {!isOwner && (
         <View style={styles.actionSection}>
           <Button
-            title={isFull ? 'No Spots Available' : 'Request Order'}
+            title={isFull ? 'No Swipes Available' : 'Request Food'}
             onPress={handleRequestOrder}
             disabled={isFull}
             fullWidth
@@ -164,7 +155,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
       {isOwner && requests && requests.length > 0 && (
         <View style={styles.requestsSection}>
           <Text style={styles.sectionTitle}>
-            Incoming Requests ({requests.length})
+            Food Requests ({requests.length})
           </Text>
           {requests.map((request) => (
             <RequestCard

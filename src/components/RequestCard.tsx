@@ -45,7 +45,7 @@ export function RequestCard({
   onPress,
 }: RequestCardProps) {
   const isBuyer = currentUserId === request.buyer_id;
-  const roleLabel = isBuyer ? "You're buying" : "You're selling";
+  const roleLabel = isBuyer ? "You're requesting" : "You're fulfilling";
   const otherParty = isBuyer ? request.seller : request.buyer;
   const otherName = otherParty?.name ?? 'Anonymous';
 

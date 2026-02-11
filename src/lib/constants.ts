@@ -28,7 +28,7 @@ export type PostStatus = (typeof POST_STATUS)[keyof typeof POST_STATUS];
 export const STATUS_LABELS: Record<RequestStatus, string> = {
   requested: 'Requested',
   accepted: 'Accepted',
-  paid: 'Paid',
+  paid: 'Confirmed',
   ordered: 'Ordered',
   picked_up: 'Picked Up',
   completed: 'Completed',
@@ -48,10 +48,10 @@ export const STATUS_COLORS: Record<RequestStatus, string> = {
   disputed: '#F97316',  // orange
 };
 
-/** User role preferences */
+/** User role preferences (DB uses 'buyer'/'seller' internally) */
 export const ROLE_PREFERENCE = {
-  BUYER: 'buyer',
-  SELLER: 'seller',
+  UPPERCLASSMAN: 'buyer',   // upperclassman requesting food
+  FRESHMAN: 'seller',       // freshman donating swipes
   ADMIN: 'admin',
 } as const;
 

@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { useAuth } from '../../hooks/use-auth';
 import { useDisputes, useResolveDispute } from '../../hooks/use-disputes';
@@ -15,6 +14,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { Loading } from '../../components/ui/Loading';
+import { showAlert } from '../../lib/utils';
 import type { Dispute } from '../../types/database';
 
 const colors = {
@@ -48,7 +48,7 @@ function DisputeItem({
 
   const handleResolve = async () => {
     if (!resolution.trim()) {
-      Alert.alert('Error', 'Please enter a resolution');
+      showAlert('Error', 'Please enter a resolution');
       return;
     }
 
@@ -58,7 +58,7 @@ function DisputeItem({
       setResolution('');
       setExpanded(false);
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to resolve dispute');
+      showAlert('Error', err?.message ?? 'Failed to resolve dispute');
     } finally {
       setResolving(false);
     }

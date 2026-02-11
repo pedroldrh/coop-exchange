@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
@@ -17,6 +16,7 @@ import { useAuth } from '../../hooks/use-auth';
 import { useCreatePost } from '../../hooks/use-posts';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { showAlert } from '../../lib/utils';
 
 const createPostSchema = z.object({
   capacity_total: z
@@ -90,7 +90,7 @@ export function CreatePostScreen({ navigation }: Props) {
       });
       navigation.goBack();
     } catch (error: any) {
-      Alert.alert('Error', error?.message ?? 'Failed to create post');
+      showAlert('Error', error?.message ?? 'Failed to create post');
     }
   };
 
@@ -105,9 +105,9 @@ export function CreatePostScreen({ navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.heading}>Create a New Post</Text>
+        <Text style={styles.heading}>Share Your Swipes</Text>
         <Text style={styles.subheading}>
-          Let buyers know you are placing an order
+          Let others know you have meal swipes to share
         </Text>
 
         <View style={styles.form}>
@@ -118,7 +118,7 @@ export function CreatePostScreen({ navigation }: Props) {
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label="Total Capacity *"
-                placeholder="How many orders can you take?"
+                placeholder="How many meals can you get?"
                 value={value}
                 onChangeText={onChange}
                 keyboardType="number-pad"
@@ -133,7 +133,7 @@ export function CreatePostScreen({ navigation }: Props) {
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
                 label="Pickup Location"
-                placeholder="Where will buyers pick up orders?"
+                placeholder="Where should people pick up food?"
                 value={value}
                 onChangeText={onChange}
                 error={errors.location?.message}
@@ -157,24 +157,9 @@ export function CreatePostScreen({ navigation }: Props) {
             )}
           />
 
-          <Controller
-            control={control}
-            name="max_value_hint"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <Input
-                label="Max Order Value ($)"
-                placeholder="Optional max $ per order"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="decimal-pad"
-                error={errors.max_value_hint?.message}
-              />
-            )}
-          />
-
           <View style={styles.buttonContainer}>
             <Button
-              title="Create Post"
+              title="Share Swipes"
               onPress={handleSubmit(onSubmit)}
               loading={createPost.isPending}
               fullWidth

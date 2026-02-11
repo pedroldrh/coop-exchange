@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
@@ -18,6 +17,7 @@ import { useCreateRequest } from '../../hooks/use-requests';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { ItemsInput } from '../../components/ItemsInput';
+import { showAlert } from '../../lib/utils';
 
 const createRequestSchema = z.object({
   items_text: z.string().min(1, 'Items are required'),
@@ -88,7 +88,7 @@ export function CreateRequestScreen({ route, navigation }: Props) {
       });
       navigation.navigate('OrderDetail', { requestId: result.id });
     } catch (error: any) {
-      Alert.alert('Error', error?.message ?? 'Failed to submit request');
+      showAlert('Error', error?.message ?? 'Failed to submit request');
     }
   };
 
@@ -103,9 +103,9 @@ export function CreateRequestScreen({ route, navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.heading}>Request an Order</Text>
+        <Text style={styles.heading}>Request Food</Text>
         <Text style={styles.subheading}>
-          Tell the seller what you need them to order for you
+          Tell them what food you'd like
         </Text>
 
         <View style={styles.form}>
@@ -142,24 +142,9 @@ export function CreateRequestScreen({ route, navigation }: Props) {
             )}
           />
 
-          <Controller
-            control={control}
-            name="est_total"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Estimated Total ($)"
-                placeholder="Approximate cost of your items"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="decimal-pad"
-                error={errors.est_total?.message}
-              />
-            )}
-          />
-
           <View style={styles.buttonContainer}>
             <Button
-              title="Submit Request"
+              title="Send Request"
               onPress={handleSubmit(onSubmit)}
               loading={createRequest.isPending}
               fullWidth

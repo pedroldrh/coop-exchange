@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -16,6 +15,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
 import { EMAIL_DOMAIN } from '../../lib/constants';
+import { showAlert } from '../../lib/utils';
 
 /* ------------------------------------------------------------------ */
 /* Validation schema                                                   */
@@ -53,14 +53,21 @@ export function LoginScreen({ navigation }: Props) {
     defaultValues: { email: '' },
   });
 
+  const isWeb = Platform.OS === 'web';
+  const [emailSent, setEmailSent] = useState(false);
+
   const onSubmit = async (data: LoginFormData) => {
     const email = data.email.trim().toLowerCase();
     setSending(true);
     try {
       await signIn(email);
-      navigation.navigate('Verify', { email });
+      if (isWeb) {
+        setEmailSent(true);
+      } else {
+        navigation.navigate('Verify', { email });
+      }
     } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Failed to send code. Try again.');
+      showAlert('Error', err.message ?? 'Failed to send code. Try again.');
     } finally {
       setSending(false);
     }
@@ -73,50 +80,71 @@ export function LoginScreen({ navigation }: Props) {
     >
       <View style={styles.inner}>
         {/* ---- Branding ---- */}
-        <Text style={styles.title}>Coop Exchange</Text>
-        <Text style={styles.subtitle}>
-          Sign in with your W&L email to get started.
-        </Text>
+        <Text style={styles.title}>Swipe Share</Text>
 
-        {/* ---- Email input ---- */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.label}>Email</Text>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[styles.input, errors.email && styles.inputError]}
-                placeholder={`you@${EMAIL_DOMAIN}`}
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                returnKeyType="send"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                editable={!sending}
-                onSubmitEditing={handleSubmit(onSubmit)}
+        {emailSent ? (
+          <View style={styles.sentContainer}>
+            <Text style={styles.sentIcon}>&#9993;</Text>
+            <Text style={styles.sentTitle}>Check your email!</Text>
+            <Text style={styles.sentText}>
+              We sent a magic link to your email. Click the link in the email to sign in.
+              This page will update automatically.
+            </Text>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: '#6B7280', marginTop: 24 }]}
+              onPress={() => setEmailSent(false)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.buttonText}>Try a different email</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <Text style={styles.subtitle}>
+              Sign in with your W&L email to get started.
+            </Text>
+
+            {/* ---- Email input ---- */}
+            <View style={styles.fieldWrapper}>
+              <Text style={styles.label}>Email</Text>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[styles.input, errors.email && styles.inputError]}
+                    placeholder={`you@${EMAIL_DOMAIN}`}
+                    placeholderTextColor="#9CA3AF"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    returnKeyType="send"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    editable={!sending}
+                    onSubmitEditing={handleSubmit(onSubmit)}
+                  />
+                )}
               />
-            )}
-          />
-          {errors.email && (
-            <Text style={styles.errorText}>{errors.email.message}</Text>
-          )}
-        </View>
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email.message}</Text>
+              )}
+            </View>
 
-        {/* ---- Submit button ---- */}
-        <TouchableOpacity
-          style={[styles.button, sending && styles.buttonDisabled]}
-          onPress={handleSubmit(onSubmit)}
-          activeOpacity={0.8}
-          disabled={sending}
-        >
-          <Text style={styles.buttonText}>
-            {sending ? 'Sending...' : 'Send Code'}
-          </Text>
-        </TouchableOpacity>
+            {/* ---- Submit button ---- */}
+            <TouchableOpacity
+              style={[styles.button, sending && styles.buttonDisabled]}
+              onPress={handleSubmit(onSubmit)}
+              activeOpacity={0.8}
+              disabled={sending}
+            >
+              <Text style={styles.buttonText}>
+                {sending ? 'Sending...' : 'Send Code'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -197,5 +225,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  sentContainer: {
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  sentIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  sentTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: GRAY900,
+    marginBottom: 8,
+  },
+  sentText: {
+    fontSize: 15,
+    color: GRAY400,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

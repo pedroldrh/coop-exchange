@@ -26,7 +26,7 @@ export function OrderActions({
   const { status } = request;
 
   const canCancel =
-    status === 'requested' || status === 'accepted' || status === 'paid';
+    status === 'requested' || status === 'accepted';
   const canDispute =
     status === 'ordered' || status === 'picked_up' || status === 'completed';
 
@@ -57,21 +57,10 @@ export function OrderActions({
         </View>
       )}
 
-      {/* Accepted + Buyer: Mark Paid */}
-      {status === 'accepted' && isBuyer && (
+      {/* Accepted + Seller (Freshman): Mark as Ordered */}
+      {status === 'accepted' && isSeller && (
         <Button
-          title="Mark Paid"
-          onPress={() => onAction('mark_paid')}
-          variant="primary"
-          loading={loading}
-          fullWidth
-        />
-      )}
-
-      {/* Paid + Seller: Mark Ordered */}
-      {status === 'paid' && isSeller && (
-        <Button
-          title="Mark Ordered"
+          title="Mark as Ordered"
           onPress={() => onAction('mark_ordered')}
           variant="primary"
           loading={loading}

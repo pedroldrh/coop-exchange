@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../hooks/use-auth';
 import { supabase } from '../../lib/supabase';
+import { showAlert } from '../../lib/utils';
 
 /* ------------------------------------------------------------------ */
 /* Validation schema                                                   */
@@ -22,10 +22,6 @@ import { supabase } from '../../lib/supabase';
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
-  venmo_handle: z
-    .string()
-    .min(1, 'Venmo handle is required')
-    .regex(/^@/, 'Venmo handle must start with @'),
   role_preference: z.enum(['buyer', 'seller'] as const, {
     message: 'Please select a role preference',
   }),
@@ -49,31 +45,42 @@ export function ProfileSetupScreen() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: '',
-      venmo_handle: '@',
       role_preference: 'buyer',
     },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
-    if (!user) return;
+    if (!user) {
+      console.warn('[ProfileSetup] onSubmit called but user is null');
+      return;
+    }
 
+    console.log('[ProfileSetup] onSubmit: updating profile for', user.id, data);
     setSubmitting(true);
     try {
-      const { error } = await supabase.from('profiles').upsert({
-        id: user.id,
-        email: user.email!,
-        name: data.name.trim(),
-        venmo_handle: data.venmo_handle.trim(),
-        role_preference: data.role_preference,
-      });
+      const { error, data: updateResult } = await supabase
+        .from('profiles')
+        .update({
+          name: data.name.trim(),
+          role_preference: data.role_preference,
+        })
+        .eq('id', user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[ProfileSetup] Supabase update error:', error);
+        throw error;
+      }
 
+      console.log('[ProfileSetup] Update succeeded, result:', updateResult);
+      console.log('[ProfileSetup] Calling refreshProfile...');
       await refreshProfile();
+      console.log('[ProfileSetup] refreshProfile completed, navigation should happen automatically');
       // Navigation happens automatically via RootNavigator
       // when profileComplete becomes true
     } catch (err: any) {
-      Alert.alert('Error', err.message ?? 'Failed to save profile.');
+      console.error('[ProfileSetup] onSubmit error:', err);
+      showAlert('Error', err.message ?? 'Failed to save profile.');
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +98,7 @@ export function ProfileSetupScreen() {
         {/* ---- Header ---- */}
         <Text style={styles.title}>Set Up Your Profile</Text>
         <Text style={styles.subtitle}>
-          Tell us a bit about yourself so others can find you.
+          Tell us a bit about yourself.
         </Text>
 
         {/* ---- Name ---- */}
@@ -103,7 +110,7 @@ export function ProfileSetupScreen() {
             render={({ field: { onChange, onBlur, value } }) => (
               <TextInput
                 style={[styles.input, errors.name && styles.inputError]}
-                placeholder="Your full name"
+                placeholder="Your name"
                 placeholderTextColor="#9CA3AF"
                 autoCapitalize="words"
                 onBlur={onBlur}
@@ -115,41 +122,6 @@ export function ProfileSetupScreen() {
           />
           {errors.name && (
             <Text style={styles.errorText}>{errors.name.message}</Text>
-          )}
-        </View>
-
-        {/* ---- Venmo Handle ---- */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.label}>Venmo Handle</Text>
-          <Controller
-            control={control}
-            name="venmo_handle"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[
-                  styles.input,
-                  errors.venmo_handle && styles.inputError,
-                ]}
-                placeholder="@your-venmo"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="none"
-                autoCorrect={false}
-                onBlur={onBlur}
-                onChangeText={(text) => {
-                  // Ensure the @ prefix is always present
-                  if (!text.startsWith('@')) {
-                    onChange('@' + text.replace(/@/g, ''));
-                  } else {
-                    onChange(text);
-                  }
-                }}
-                value={value}
-                editable={!submitting}
-              />
-            )}
-          />
-          {errors.venmo_handle && (
-            <Text style={styles.errorText}>{errors.venmo_handle.message}</Text>
           )}
         </View>
 
@@ -176,7 +148,7 @@ export function ProfileSetupScreen() {
                       value === 'buyer' && styles.roleTextActive,
                     ]}
                   >
-                    Buyer
+                    Upperclassman
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -194,7 +166,7 @@ export function ProfileSetupScreen() {
                       value === 'seller' && styles.roleTextActive,
                     ]}
                   >
-                    Seller
+                    Freshman
                   </Text>
                 </TouchableOpacity>
               </View>

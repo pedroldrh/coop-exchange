@@ -7,7 +7,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../types/navigation';
@@ -19,16 +18,10 @@ import { useProfile, useUpdateProfile } from '../../hooks/use-profile';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
+import { showAlert } from '../../lib/utils';
 
 const editProfileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  venmo_handle: z
-    .string()
-    .optional()
-    .refine(
-      (val) => !val || val.startsWith('@'),
-      { message: 'Venmo handle must start with @' },
-    ),
   role_preference: z.enum(['buyer', 'seller']),
 });
 
@@ -51,8 +44,8 @@ const colors = {
 };
 
 const roleOptions: { label: string; value: 'buyer' | 'seller' }[] = [
-  { label: 'Buyer', value: 'buyer' },
-  { label: 'Seller', value: 'seller' },
+  { label: 'Upperclassman', value: 'buyer' },
+  { label: 'Freshman', value: 'seller' },
 ];
 
 export function EditProfileScreen({ navigation }: Props) {
@@ -68,7 +61,6 @@ export function EditProfileScreen({ navigation }: Props) {
   } = useForm<FormValues>({
     defaultValues: {
       name: '',
-      venmo_handle: '',
       role_preference: 'buyer',
     },
     resolver: zodResolver(editProfileSchema) as any,
@@ -79,7 +71,6 @@ export function EditProfileScreen({ navigation }: Props) {
     if (profile) {
       reset({
         name: profile.name ?? '',
-        venmo_handle: profile.venmo_handle ?? '',
         role_preference:
           profile.role_preference === 'admin'
             ? 'buyer'
@@ -92,13 +83,12 @@ export function EditProfileScreen({ navigation }: Props) {
     try {
       await updateProfile.mutateAsync({
         name: data.name,
-        venmo_handle: data.venmo_handle || null,
         role_preference: data.role_preference,
       });
       await refreshProfile();
       navigation.goBack();
     } catch (err: any) {
-      Alert.alert('Error', err?.message ?? 'Failed to update profile');
+      showAlert('Error', err?.message ?? 'Failed to update profile');
     }
   };
 
@@ -131,20 +121,6 @@ export function EditProfileScreen({ navigation }: Props) {
                 value={value}
                 onChangeText={onChange}
                 error={errors.name?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="venmo_handle"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Venmo Handle"
-                placeholder="@your-venmo"
-                value={value}
-                onChangeText={onChange}
-                error={errors.venmo_handle?.message}
               />
             )}
           />
