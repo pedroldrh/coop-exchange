@@ -20,12 +20,12 @@ export function FeedStack() {
       <Stack.Screen
         name="Feed"
         component={FeedScreen as any}
-        options={{ title: 'Feed' }}
+        options={{ title: 'Swipes' }}
       />
       <Stack.Screen
         name="PostDetail"
         component={PostDetailScreen as any}
-        options={{ title: 'Post Details' }}
+        options={{ title: 'Swipe Details' }}
       />
       <Stack.Screen
         name="CreatePost"
@@ -35,7 +35,7 @@ export function FeedStack() {
       <Stack.Screen
         name="CreateRequest"
         component={CreateRequestScreen as any}
-        options={{ title: 'Place Order' }}
+        options={{ title: 'Pick Your Food' }}
       />
       <Stack.Screen
         name="OrderDetail"

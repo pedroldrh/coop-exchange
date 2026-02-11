@@ -7,6 +7,8 @@ import {
   Alert,
   Platform,
   RefreshControl,
+  Linking,
+  Pressable,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
@@ -402,6 +404,28 @@ export function OrderDetailScreen({ route }: Props) {
           </Card>
         )}
 
+        {/* Mobile Order Link — shown to freshman after accepting */}
+        {request.status === 'accepted' && isSeller && (
+          <Card style={styles.sectionCard}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.mobileOrderButton,
+                pressed && styles.mobileOrderButtonPressed,
+              ]}
+              onPress={() =>
+                Linking.openURL('https://my.wlu.edu/dining-services')
+              }
+            >
+              <Text style={styles.mobileOrderButtonText}>
+                Open Mobile Order
+              </Text>
+              <Text style={styles.mobileOrderHint}>
+                Opens W&L Dining Services
+              </Text>
+            </Pressable>
+          </Card>
+        )}
+
         {/* Actions */}
         {request.status !== 'completed' &&
           request.status !== 'cancelled' &&
@@ -627,5 +651,25 @@ const styles = StyleSheet.create({
   },
   modalActions: {
     marginTop: 8,
+  },
+  mobileOrderButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  mobileOrderButtonPressed: {
+    opacity: 0.85,
+  },
+  mobileOrderButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
+    marginBottom: 4,
+  },
+  mobileOrderHint: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.7)',
   },
 });

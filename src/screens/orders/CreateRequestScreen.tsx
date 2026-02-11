@@ -1,49 +1,29 @@
-import React from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  ScrollView,
+  StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  StyleSheet,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '../../hooks/use-auth';
 import { useCreateRequest } from '../../hooks/use-requests';
+import { MenuPicker } from '../../components/MenuPicker';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { ItemsInput } from '../../components/ItemsInput';
+import { CAFE_77_MENU } from '../../lib/menu';
+import { SWIPE_VALUE } from '../../lib/constants';
 import { showAlert } from '../../lib/utils';
-
-const createRequestSchema = z.object({
-  items_text: z.string().min(1, 'Items are required'),
-  instructions: z.string().optional(),
-  est_total: z
-    .string()
-    .optional()
-    .transform((val) => (val ? parseFloat(val) : undefined))
-    .refine((val) => val === undefined || !isNaN(val), {
-      message: 'Must be a valid number',
-    }),
-});
-
-type FormValues = {
-  items_text: string;
-  instructions: string;
-  est_total: string;
-};
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'CreateRequest'>;
 
 const colors = {
   primary: '#4F46E5',
   gray50: '#F9FAFB',
+  gray400: '#9CA3AF',
   gray500: '#6B7280',
-  gray700: '#374151',
   gray900: '#111827',
   white: '#FFFFFF',
 };
@@ -53,30 +33,46 @@ export function CreateRequestScreen({ route, navigation }: Props) {
   const { user } = useAuth();
   const createRequest = useCreateRequest();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<FormValues>({
-    defaultValues: {
-      items_text: '',
-      instructions: '',
-      est_total: '',
-    },
-  });
+  const [selections, setSelections] = useState<Record<string, number>>({});
+  const [instructions, setInstructions] = useState('');
 
-  const onSubmit = async (data: FormValues) => {
-    if (!user) return;
+  const total = useMemo(() => {
+    let sum = 0;
+    for (const cat of CAFE_77_MENU) {
+      for (const item of cat.items) {
+        sum += (selections[item.id] ?? 0) * item.price;
+      }
+    }
+    return Math.round(sum * 100) / 100;
+  }, [selections]);
 
-    const estTotal = data.est_total ? parseFloat(data.est_total) : null;
+  const hasItems = Object.values(selections).some((qty) => qty > 0);
+
+  const buildItemsText = useCallback(() => {
+    const lines: string[] = [];
+    for (const cat of CAFE_77_MENU) {
+      for (const item of cat.items) {
+        const qty = selections[item.id] ?? 0;
+        if (qty > 0) {
+          lines.push(
+            `${qty}x ${item.name} ($${(item.price * qty).toFixed(2)})`,
+          );
+        }
+      }
+    }
+    return lines.join('\n');
+  }, [selections]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!user || !hasItems) return;
 
     try {
       const result = await createRequest.mutateAsync({
         post_id: postId,
         seller_id: sellerId,
-        items_text: data.items_text,
-        instructions: data.instructions || null,
-        est_total: isNaN(estTotal as number) ? null : estTotal,
+        items_text: buildItemsText(),
+        instructions: instructions.trim() || null,
+        est_total: total,
         paid_proof_path: null,
         paid_reference: null,
         ordered_proof_path: null,
@@ -90,7 +86,17 @@ export function CreateRequestScreen({ route, navigation }: Props) {
     } catch (error: any) {
       showAlert('Error', error?.message ?? 'Failed to submit request');
     }
-  };
+  }, [
+    user,
+    hasItems,
+    postId,
+    sellerId,
+    buildItemsText,
+    instructions,
+    total,
+    createRequest,
+    navigation,
+  ]);
 
   return (
     <KeyboardAvoidingView
@@ -98,61 +104,45 @@ export function CreateRequestScreen({ route, navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={100}
     >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.heading}>Request Food</Text>
+      <View style={styles.content}>
+        <Text style={styles.heading}>Pick Your Food</Text>
         <Text style={styles.subheading}>
-          Tell them what food you'd like
+          Choose items up to ${SWIPE_VALUE.toFixed(2)}
         </Text>
 
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="items_text"
-            rules={{ required: 'Items are required' }}
-            render={({ field: { onChange, value } }) => (
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Items *</Text>
-                <ItemsInput value={value} onChangeText={onChange} />
-                {errors.items_text && (
-                  <Text style={styles.errorText}>
-                    {errors.items_text.message}
-                  </Text>
-                )}
-              </View>
-            )}
+        <View style={styles.menuContainer}>
+          <MenuPicker
+            selections={selections}
+            onSelectionsChange={setSelections}
           />
-
-          <Controller
-            control={control}
-            name="instructions"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Special Instructions"
-                placeholder="Any preferences, substitutions, etc."
-                value={value}
-                onChangeText={onChange}
-                multiline
-                numberOfLines={3}
-                error={errors.instructions?.message}
-              />
-            )}
-          />
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Send Request"
-              onPress={handleSubmit(onSubmit)}
-              loading={createRequest.isPending}
-              fullWidth
-              size="lg"
-            />
-          </View>
         </View>
-      </ScrollView>
+
+        <View style={styles.instructionsContainer}>
+          <Input
+            label="Special Instructions"
+            placeholder="e.g. no pickles, extra sauce"
+            value={instructions}
+            onChangeText={setInstructions}
+            multiline
+            numberOfLines={2}
+          />
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <Button
+            title={
+              hasItems
+                ? `Send Request — $${total.toFixed(2)}`
+                : 'Select items to continue'
+            }
+            onPress={handleSubmit}
+            loading={createRequest.isPending}
+            fullWidth
+            size="lg"
+            disabled={!hasItems}
+          />
+        </View>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -162,9 +152,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.white,
   },
-  scrollContent: {
+  content: {
+    flex: 1,
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 24,
   },
   heading: {
     fontSize: 24,
@@ -175,26 +166,15 @@ const styles = StyleSheet.create({
   subheading: {
     fontSize: 14,
     color: colors.gray500,
-    marginBottom: 28,
+    marginBottom: 12,
   },
-  form: {
-    gap: 0,
+  menuContainer: {
+    flex: 1,
   },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray700,
-    marginBottom: 6,
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#EF4444',
-    marginTop: 4,
+  instructionsContainer: {
+    marginTop: 8,
   },
   buttonContainer: {
-    marginTop: 8,
+    marginTop: 12,
   },
 });

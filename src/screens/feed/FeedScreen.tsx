@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   FlatList,
@@ -6,13 +6,15 @@ import {
   Pressable,
   StyleSheet,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
-import { usePosts, useMyPosts } from '../../hooks/use-posts';
+import { usePosts, useMyPosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Loading } from '../../components/ui/Loading';
+import { showAlert } from '../../lib/utils';
 import type { Post, Profile } from '../../types/database';
 
 type PostWithSeller = Post & { seller: Profile };
@@ -20,6 +22,7 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 
 const colors = {
   primary: '#4F46E5',
+  primaryLight: '#EEF2FF',
   gray50: '#F9FAFB',
   gray400: '#9CA3AF',
   gray500: '#6B7280',
@@ -27,10 +30,14 @@ const colors = {
   white: '#FFFFFF',
 };
 
+const SWIPE_OPTIONS = [1, 2, 3, 4, 5];
+
 export function FeedScreen({ navigation }: Props) {
   const { user, profile } = useAuth();
   const { data: posts, isLoading, refetch, isRefetching } = usePosts();
   const { data: myPosts } = useMyPosts();
+  const createPost = useCreatePost();
+  const [showSwipeModal, setShowSwipeModal] = useState(false);
 
   const showCreateButton =
     profile?.role_preference === 'seller' ||
@@ -43,9 +50,23 @@ export function FeedScreen({ navigation }: Props) {
     [navigation],
   );
 
-  const handleCreatePost = useCallback(() => {
-    navigation.navigate('CreatePost' as never);
-  }, [navigation]);
+  const handleSwipeSelect = useCallback(
+    async (count: number) => {
+      setShowSwipeModal(false);
+      try {
+        await createPost.mutateAsync({
+          capacity_total: count,
+          capacity_remaining: count,
+          location: 'Cafe 77',
+          notes: null,
+          max_value_hint: null,
+        });
+      } catch (error: any) {
+        showAlert('Error', error?.message ?? 'Failed to create post');
+      }
+    },
+    [createPost],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: PostWithSeller }) => (
@@ -95,11 +116,47 @@ export function FeedScreen({ navigation }: Props) {
             styles.fab,
             pressed && styles.fabPressed,
           ]}
-          onPress={handleCreatePost}
+          onPress={() => setShowSwipeModal(true)}
         >
           <Text style={styles.fabText}>+</Text>
         </Pressable>
       )}
+
+      {/* Swipe Count Modal */}
+      <Modal
+        visible={showSwipeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSwipeModal(false)}
+        statusBarTranslucent
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setShowSwipeModal(false)}
+        >
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Text style={styles.modalTitle}>
+              How many swipes do you want to share?
+            </Text>
+            <View style={styles.swipeOptions}>
+              {SWIPE_OPTIONS.map((num) => (
+                <Pressable
+                  key={num}
+                  style={({ pressed }) => [
+                    styles.swipeButton,
+                    pressed && styles.swipeButtonPressed,
+                  ]}
+                  onPress={() => handleSwipeSelect(num)}
+                  disabled={createPost.isPending}
+                >
+                  <Text style={styles.swipeButtonText}>{num}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <Text style={styles.modalHint}>Tap a number to post</Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -158,5 +215,54 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontWeight: '300',
     lineHeight: 30,
+  },
+  // Modal styles
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 28,
+    width: '100%',
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.gray900,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  swipeOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  swipeButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  swipeButtonPressed: {
+    backgroundColor: colors.primary,
+  },
+  swipeButtonText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  modalHint: {
+    fontSize: 13,
+    color: colors.gray400,
   },
 });

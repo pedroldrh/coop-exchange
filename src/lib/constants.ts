@@ -64,5 +64,8 @@ export const DISPUTE_WINDOW_HOURS = 24;
 /** Maximum star rating */
 export const MAX_STARS = 5;
 
+/** Dollar value of a single meal swipe */
+export const SWIPE_VALUE = 11.50;
+
 /** Supabase Storage bucket for proof images */
 export const PROOFS_BUCKET = 'proofs';
