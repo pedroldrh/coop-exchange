@@ -43,11 +43,22 @@ export function FeedScreen({ navigation }: Props) {
     profile?.role_preference === 'seller' ||
     (myPosts && myPosts.length > 0);
 
+  const isFreshman = profile?.role_preference === 'seller';
+
   const handlePostPress = useCallback(
-    (postId: string) => {
-      navigation.navigate('PostDetail', { postId });
+    (post: PostWithSeller) => {
+      if (isFreshman) {
+        // Freshmen see their own post details / incoming requests
+        navigation.navigate('PostDetail', { postId: post.id });
+      } else {
+        // Upperclassmen go straight to the menu picker
+        navigation.navigate('CreateRequest', {
+          postId: post.id,
+          sellerId: post.seller_id,
+        });
+      }
     },
-    [navigation],
+    [navigation, isFreshman],
   );
 
   const handleSwipeSelect = useCallback(
@@ -70,7 +81,7 @@ export function FeedScreen({ navigation }: Props) {
 
   const renderItem = useCallback(
     ({ item }: { item: PostWithSeller }) => (
-      <PostCard post={item} onPress={() => handlePostPress(item.id)} />
+      <PostCard post={item} onPress={() => handlePostPress(item)} />
     ),
     [handlePostPress],
   );
