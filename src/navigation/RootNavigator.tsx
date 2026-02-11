@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { LoginScreen } from '../screens/auth/LoginScreen';
-import { VerifyScreen } from '../screens/auth/VerifyScreen';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { MainTabs } from './MainTabs';
 
@@ -20,7 +19,6 @@ function AuthNavigator() {
   return (
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
-      <AuthStack.Screen name="Verify" component={VerifyScreen} />
     </AuthStack.Navigator>
   );
 }

@@ -23,11 +23,30 @@ import { showAlert } from '../../lib/utils';
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required').max(100),
   role_preference: z.enum(['buyer', 'seller'] as const, {
-    message: 'Please select a role preference',
+    message: 'Please select your role',
   }),
 });
 
 type ProfileFormData = z.infer<typeof profileSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Role option data                                                    */
+/* ------------------------------------------------------------------ */
+
+const roles = [
+  {
+    value: 'seller' as const,
+    label: 'Freshman',
+    emoji: '🎓',
+    description: 'I have meal swipes to share',
+  },
+  {
+    value: 'buyer' as const,
+    label: 'Upperclassman',
+    emoji: '🍔',
+    description: 'I want to request food',
+  },
+];
 
 /* ------------------------------------------------------------------ */
 /* Screen                                                              */
@@ -50,15 +69,11 @@ export function ProfileSetupScreen() {
   });
 
   const onSubmit = async (data: ProfileFormData) => {
-    if (!user) {
-      console.warn('[ProfileSetup] onSubmit called but user is null');
-      return;
-    }
+    if (!user) return;
 
-    console.log('[ProfileSetup] onSubmit: updating profile for', user.id, data);
     setSubmitting(true);
     try {
-      const { error, data: updateResult } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({
           name: data.name.trim(),
@@ -67,19 +82,10 @@ export function ProfileSetupScreen() {
         .eq('id', user.id)
         .select();
 
-      if (error) {
-        console.error('[ProfileSetup] Supabase update error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('[ProfileSetup] Update succeeded, result:', updateResult);
-      console.log('[ProfileSetup] Calling refreshProfile...');
       await refreshProfile();
-      console.log('[ProfileSetup] refreshProfile completed, navigation should happen automatically');
-      // Navigation happens automatically via RootNavigator
-      // when profileComplete becomes true
     } catch (err: any) {
-      console.error('[ProfileSetup] onSubmit error:', err);
       showAlert('Error', err.message ?? 'Failed to save profile.');
     } finally {
       setSubmitting(false);
@@ -94,211 +100,323 @@ export function ProfileSetupScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* ---- Header ---- */}
-        <Text style={styles.title}>Set Up Your Profile</Text>
-        <Text style={styles.subtitle}>
-          Tell us a bit about yourself.
-        </Text>
-
-        {/* ---- Name ---- */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.label}>Name</Text>
-          <Controller
-            control={control}
-            name="name"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                style={[styles.input, errors.name && styles.inputError]}
-                placeholder="Your name"
-                placeholderTextColor="#9CA3AF"
-                autoCapitalize="words"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-                editable={!submitting}
-              />
-            )}
-          />
-          {errors.name && (
-            <Text style={styles.errorText}>{errors.name.message}</Text>
-          )}
-        </View>
-
-        {/* ---- Role Preference ---- */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.label}>Role Preference</Text>
-          <Controller
-            control={control}
-            name="role_preference"
-            render={({ field: { onChange, value } }) => (
-              <View style={styles.roleRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.roleOption,
-                    value === 'buyer' && styles.roleOptionActive,
-                  ]}
-                  onPress={() => onChange('buyer')}
-                  disabled={submitting}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.roleText,
-                      value === 'buyer' && styles.roleTextActive,
-                    ]}
-                  >
-                    Upperclassman
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.roleOption,
-                    value === 'seller' && styles.roleOptionActive,
-                  ]}
-                  onPress={() => onChange('seller')}
-                  disabled={submitting}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    style={[
-                      styles.roleText,
-                      value === 'seller' && styles.roleTextActive,
-                    ]}
-                  >
-                    Freshman
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-          {errors.role_preference && (
-            <Text style={styles.errorText}>
-              {errors.role_preference.message}
-            </Text>
-          )}
-        </View>
-
-        {/* ---- Submit button ---- */}
-        <TouchableOpacity
-          style={[styles.button, submitting && styles.buttonDisabled]}
-          onPress={handleSubmit(onSubmit)}
-          activeOpacity={0.8}
-          disabled={submitting}
-        >
-          <Text style={styles.buttonText}>
-            {submitting ? 'Saving...' : 'Get Started'}
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.iconCircle}>
+            <Text style={styles.iconEmoji}>👋</Text>
+          </View>
+          <Text style={styles.title}>Welcome to Swipe Share</Text>
+          <Text style={styles.subtitle}>
+            Let's set up your profile so others can find you
           </Text>
-        </TouchableOpacity>
+        </View>
+
+        {/* Form Card */}
+        <View style={styles.card}>
+          {/* Name */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>What's your name?</Text>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View
+                  style={[
+                    styles.inputWrapper,
+                    errors.name && styles.inputWrapperError,
+                  ]}
+                >
+                  <Text style={styles.inputIcon}>👤</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Your name"
+                    placeholderTextColor="#A0AEC0"
+                    autoCapitalize="words"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    editable={!submitting}
+                  />
+                </View>
+              )}
+            />
+            {errors.name && (
+              <Text style={styles.errorText}>{errors.name.message}</Text>
+            )}
+          </View>
+
+          {/* Role Preference */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>I am a...</Text>
+            <Controller
+              control={control}
+              name="role_preference"
+              render={({ field: { onChange, value } }) => (
+                <View style={styles.roleGrid}>
+                  {roles.map((role) => {
+                    const isSelected = value === role.value;
+                    return (
+                      <TouchableOpacity
+                        key={role.value}
+                        style={[
+                          styles.roleCard,
+                          isSelected && styles.roleCardActive,
+                        ]}
+                        onPress={() => onChange(role.value)}
+                        disabled={submitting}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.roleEmoji}>{role.emoji}</Text>
+                        <Text
+                          style={[
+                            styles.roleLabel,
+                            isSelected && styles.roleLabelActive,
+                          ]}
+                        >
+                          {role.label}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.roleDesc,
+                            isSelected && styles.roleDescActive,
+                          ]}
+                        >
+                          {role.description}
+                        </Text>
+                        {isSelected && (
+                          <View style={styles.checkBadge}>
+                            <Text style={styles.checkMark}>✓</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            />
+            {errors.role_preference && (
+              <Text style={styles.errorText}>
+                {errors.role_preference.message}
+              </Text>
+            )}
+          </View>
+
+          {/* Submit */}
+          <TouchableOpacity
+            style={[
+              styles.submitButton,
+              submitting && styles.submitButtonDisabled,
+            ]}
+            onPress={handleSubmit(onSubmit)}
+            activeOpacity={0.85}
+            disabled={submitting}
+          >
+            <Text style={styles.submitButtonText}>
+              {submitting ? 'Setting up...' : 'Get Started'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Styles                                                              */
+/* Colors                                                              */
 /* ------------------------------------------------------------------ */
 
 const PRIMARY = '#4F46E5';
-const GRAY50 = '#F9FAFB';
-const GRAY100 = '#F3F4F6';
-const GRAY200 = '#E5E7EB';
-const GRAY400 = '#9CA3AF';
-const GRAY700 = '#374151';
-const GRAY900 = '#111827';
+const BG = '#F0F2F8';
+const CARD_BG = '#FFFFFF';
+const TEXT_PRIMARY = '#1A202C';
+const TEXT_SECONDARY = '#718096';
+const INPUT_BG = '#F7FAFC';
+const INPUT_BORDER = '#E2E8F0';
 const RED500 = '#EF4444';
+
+/* ------------------------------------------------------------------ */
+/* Styles                                                              */
+/* ------------------------------------------------------------------ */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: GRAY50,
+    backgroundColor: BG,
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 40,
+    paddingVertical: 48,
+  },
+
+  /* Header */
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: PRIMARY,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  iconEmoji: {
+    fontSize: 32,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: GRAY900,
+    fontSize: 26,
+    fontWeight: '800',
+    color: TEXT_PRIMARY,
     textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: GRAY400,
-    textAlign: 'center',
-    marginBottom: 36,
-    lineHeight: 22,
-  },
-  fieldWrapper: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: GRAY700,
+    letterSpacing: -0.5,
     marginBottom: 6,
   },
-  input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: GRAY200,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: GRAY900,
+  subtitle: {
+    fontSize: 15,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  inputError: {
+
+  /* Card */
+  card: {
+    backgroundColor: CARD_BG,
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 4,
+  },
+
+  /* Inputs */
+  inputGroup: {
+    marginBottom: 24,
+  },
+  inputLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: TEXT_PRIMARY,
+    marginBottom: 10,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: INPUT_BG,
+    borderWidth: 1.5,
+    borderColor: INPUT_BORDER,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+  },
+  inputWrapperError: {
     borderColor: RED500,
+  },
+  inputIcon: {
+    fontSize: 16,
+    marginRight: 10,
+    opacity: 0.5,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: TEXT_PRIMARY,
   },
   errorText: {
     marginTop: 6,
     fontSize: 13,
     color: RED500,
   },
-  roleRow: {
+
+  /* Role cards */
+  roleGrid: {
     flexDirection: 'row',
     gap: 12,
   },
-  roleOption: {
+  roleCard: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: GRAY200,
-    borderRadius: 10,
-    paddingVertical: 14,
+    backgroundColor: INPUT_BG,
+    borderWidth: 2,
+    borderColor: INPUT_BORDER,
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    position: 'relative',
   },
-  roleOptionActive: {
+  roleCardActive: {
     borderColor: PRIMARY,
     backgroundColor: '#EEF2FF',
   },
-  roleText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: GRAY700,
+  roleEmoji: {
+    fontSize: 28,
+    marginBottom: 8,
   },
-  roleTextActive: {
+  roleLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  roleLabelActive: {
     color: PRIMARY,
-    fontWeight: '600',
   },
-  button: {
+  roleDesc: {
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  roleDescActive: {
+    color: '#6366F1',
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: PRIMARY,
-    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkMark: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+
+  /* Submit */
+  submitButton: {
+    backgroundColor: PRIMARY,
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 12,
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  buttonDisabled: {
+  submitButtonDisabled: {
     opacity: 0.6,
   },
-  buttonText: {
+  submitButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
 });

@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types/database';
 
@@ -28,10 +27,10 @@ interface AuthContextValue {
   isAdmin: boolean;
   /** False when the profile row exists but name is still null */
   profileComplete: boolean;
-  /** Send a magic-link / OTP to the given email */
-  signIn: (email: string) => Promise<void>;
-  /** Verify the 6-digit OTP code */
-  verifyOtp: (email: string, token: string) => Promise<void>;
+  /** Sign in with email + password */
+  signInWithPassword: (email: string, password: string) => Promise<void>;
+  /** Sign up with email + password */
+  signUp: (email: string, password: string) => Promise<void>;
   /** Sign out and clear local state */
   signOut: () => Promise<void>;
   /** Re-fetch the profile from Supabase (e.g. after editing) */
@@ -99,27 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ------- public API -------
 
-  const signIn = useCallback(async (email: string) => {
-    const redirectTo =
-      Platform.OS === 'web'
-        ? window.location.origin
-        : undefined;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        ...(redirectTo ? { emailRedirectTo: redirectTo } : {}),
-      },
-    });
+  const signInWithPassword = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
   }, []);
 
-  const verifyOtp = useCallback(async (email: string, token: string) => {
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'email',
-    });
+  const signUp = useCallback(async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
   }, []);
 
@@ -171,8 +156,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signIn,
-      verifyOtp,
+      signInWithPassword,
+      signUp,
       signOut,
       refreshProfile,
     }),
@@ -183,8 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signIn,
-      verifyOtp,
+      signInWithPassword,
+      signUp,
       signOut,
       refreshProfile,
     ],

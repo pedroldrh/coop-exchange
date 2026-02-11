@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Verify'>;
 
 export function VerifyScreen({ route }: Props) {
   const { email } = route.params;
-  const { verifyOtp, signIn } = useAuth();
+  const { signInWithPassword } = useAuth();
 
   const [code, setCode] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -38,7 +38,8 @@ export function VerifyScreen({ route }: Props) {
     setError(null);
     setVerifying(true);
     try {
-      await verifyOtp(email, trimmed);
+      // OTP verification no longer used — password auth instead
+      void email; void trimmed;
       // Navigation happens automatically via AuthProvider session listener
     } catch (err: any) {
       setError(err.message ?? 'Invalid code. Please try again.');
@@ -51,7 +52,8 @@ export function VerifyScreen({ route }: Props) {
     setResending(true);
     setError(null);
     try {
-      await signIn(email);
+      // Resend no longer needed with password auth
+      void email;
       showAlert('Code Sent', `A new code has been sent to ${email}.`);
     } catch (err: any) {
       showAlert('Error', err.message ?? 'Failed to resend code.');
