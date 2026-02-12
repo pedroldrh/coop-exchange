@@ -413,14 +413,20 @@ export function OrderDetailScreen({ route }: Props) {
                 pressed && styles.mobileOrderButtonPressed,
               ]}
               onPress={async () => {
-                const appUrl = Platform.OS === 'ios'
-                  ? 'https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529'
-                  : 'https://play.google.com/store/apps/details?id=com.blackboard.mobileorder';
-                await Linking.openURL(appUrl);
+                const deepLink = 'transactmobileorder://';
+                const supported = await Linking.canOpenURL(deepLink);
+                if (supported) {
+                  await Linking.openURL(deepLink);
+                } else {
+                  const storeUrl = Platform.OS === 'ios'
+                    ? 'https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529'
+                    : 'https://play.google.com/store/apps/details?id=com.blackboard.mobileorder';
+                  await Linking.openURL(storeUrl);
+                }
               }}
             >
               <Text style={styles.mobileOrderButtonText}>
-                Open Transact Mobile Ordering
+                Open W&L Mobile Order App
               </Text>
               <Text style={styles.mobileOrderHint}>
                 Order food for this request

@@ -122,29 +122,32 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 12,
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   timeline: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   step: {
+    flex: 1,
     alignItems: 'center',
-    flexShrink: 1,
   },
   dotRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
+    justifyContent: 'center',
   },
   dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
   },
   currentDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     borderWidth: 3,
     borderColor: colors.white,
     shadowColor: '#000',
@@ -155,16 +158,15 @@ const styles = StyleSheet.create({
   },
   line: {
     height: 3,
-    width: 20,
+    flex: 1,
     borderRadius: 1.5,
   },
   label: {
-    fontSize: 10,
+    fontSize: 11,
     color: colors.gray700,
-    marginTop: 4,
+    marginTop: 6,
     textAlign: 'center',
     fontWeight: '500',
-    maxWidth: 52,
   },
   currentLabel: {
     fontWeight: '700',
