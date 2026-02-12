@@ -227,9 +227,9 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: CARD_BG,
     alignItems: 'center',
     justifyContent: 'center',
@@ -242,8 +242,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logoImage: {
-    width: 100,
-    height: 100,
+    width: 130,
+    height: 130,
   },
   tagline: {
     fontSize: 15,
