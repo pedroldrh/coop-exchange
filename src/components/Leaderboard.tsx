@@ -1,40 +1,40 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Animated, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { useLeaderboard } from '../hooks/use-leaderboard';
 import { getTopBadge } from '../lib/badges';
 
 const colors = {
   primary: '#4F46E5',
-  gray100: '#F3F4F6',
+  primaryLight: '#EEF2FF',
+  gray200: '#E5E7EB',
   gray400: '#9CA3AF',
   gray500: '#6B7280',
+  gray800: '#1F2937',
   gray900: '#111827',
   white: '#FFFFFF',
-  gold: '#F59E0B',
-  silver: '#9CA3AF',
-  bronze: '#CD7F32',
 };
 
-const RANK_COLORS = [colors.gold, colors.silver, colors.bronze];
-const CARD_WIDTH = 90;
-const CARD_GAP = 12;
-const SCROLL_SPEED = 30; // pixels per second
+const SCROLL_SPEED = 40; // pixels per second
+const SEPARATOR = '    ·    ';
 
 export function Leaderboard() {
   const { data: leaders } = useLeaderboard(10);
   const scrollX = useRef(new Animated.Value(0)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
-    if (!leaders || leaders.length <= 3) return;
+    if (!contentWidth || !containerWidth || contentWidth <= containerWidth) return;
 
-    const totalWidth = leaders.length * (CARD_WIDTH + CARD_GAP);
-    const duration = (totalWidth / SCROLL_SPEED) * 1000;
+    // Start from right edge, scroll all the way left until content is off screen
+    const totalDistance = contentWidth + containerWidth;
+    const duration = (totalDistance / SCROLL_SPEED) * 1000;
 
     const startAnimation = () => {
-      scrollX.setValue(0);
+      scrollX.setValue(containerWidth);
       animRef.current = Animated.timing(scrollX, {
-        toValue: totalWidth,
+        toValue: -contentWidth,
         duration,
         useNativeDriver: true,
         isInteraction: false,
@@ -49,53 +49,55 @@ export function Leaderboard() {
     return () => {
       animRef.current?.stop();
     };
-  }, [leaders, scrollX]);
+  }, [contentWidth, containerWidth, scrollX]);
 
   if (!leaders || leaders.length === 0) return null;
 
-  // Duplicate the list so the scroll loops seamlessly
-  const items = leaders.length > 3 ? [...leaders, ...leaders] : leaders;
+  const handleContainerLayout = (e: LayoutChangeEvent) => {
+    setContainerWidth(e.nativeEvent.layout.width);
+  };
+
+  const handleContentLayout = (e: LayoutChangeEvent) => {
+    setContentWidth(e.nativeEvent.layout.width);
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Top Swipers</Text>
-      <View style={styles.scrollMask}>
-        <Animated.View
-          style={[
-            styles.track,
-            leaders.length > 3 && {
-              transform: [{ translateX: Animated.multiply(scrollX, -1) }],
-            },
-          ]}
-        >
-          {items.map((profile, index) => {
-            const rank = index % leaders.length;
-            const topBadge = getTopBadge(profile.completed_count);
-            const rankColor = RANK_COLORS[rank] ?? colors.gray400;
+      <View style={styles.tickerBar} onLayout={handleContainerLayout}>
+        <View style={styles.labelBox}>
+          <Text style={styles.labelText}>TOP SWIPERS</Text>
+        </View>
+        <View style={styles.tickerMask}>
+          <Animated.View
+            style={[
+              styles.tickerTrack,
+              { transform: [{ translateX: scrollX }] },
+            ]}
+            onLayout={handleContentLayout}
+          >
+            {leaders.map((profile, index) => {
+              const topBadge = getTopBadge(profile.completed_count);
+              const firstName = profile.name?.split(' ')[0] ?? 'Anon';
+              const lastInitial = profile.name?.split(' ')[1]?.[0] ?? '';
 
-            return (
-              <View key={`${profile.id}-${index}`} style={styles.card}>
-                <View style={[styles.rankCircle, { borderColor: rankColor }]}>
-                  <Text style={styles.initials}>
-                    {(profile.name ?? '?')[0].toUpperCase()}
+              return (
+                <Text key={profile.id} style={styles.tickerItem}>
+                  {index > 0 ? SEPARATOR : ''}
+                  <Text style={styles.tickerRank}>#{index + 1} </Text>
+                  {topBadge && (
+                    <Text>{topBadge.icon} </Text>
+                  )}
+                  <Text style={styles.tickerName}>
+                    {firstName}{lastInitial ? ` ${lastInitial}.` : ''}
                   </Text>
-                  <View style={[styles.rankBadge, { backgroundColor: rankColor }]}>
-                    <Text style={styles.rankText}>{rank + 1}</Text>
-                  </View>
-                </View>
-                <Text style={styles.name} numberOfLines={1}>
-                  {profile.name?.split(' ')[0] ?? 'Anon'}
+                  <Text style={styles.tickerCount}>
+                    {' '}{profile.completed_count}
+                  </Text>
                 </Text>
-                <Text style={styles.count}>
-                  {profile.completed_count} swipe{profile.completed_count !== 1 ? 's' : ''}
-                </Text>
-                {topBadge && (
-                  <Text style={styles.badgeIcon}>{topBadge.icon}</Text>
-                )}
-              </View>
-            );
-          })}
-        </Animated.View>
+              );
+            })}
+          </Animated.View>
+        </View>
       </View>
     </View>
   );
@@ -103,76 +105,57 @@ export function Leaderboard() {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.gray900,
     marginBottom: 12,
   },
-  scrollMask: {
-    overflow: 'hidden',
-  },
-  track: {
+  tickerBar: {
     flexDirection: 'row',
-    gap: CARD_GAP,
-  },
-  card: {
     alignItems: 'center',
     backgroundColor: colors.white,
-    borderRadius: 14,
-    padding: 12,
-    paddingTop: 14,
-    width: CARD_WIDTH,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.gray200,
+    overflow: 'hidden',
+    height: 38,
   },
-  rankCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.gray100,
-    alignItems: 'center',
+  labelBox: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 10,
+    height: '100%',
     justifyContent: 'center',
-    borderWidth: 2,
-    marginBottom: 6,
+    zIndex: 1,
   },
-  initials: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.gray900,
-  },
-  rankBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rankText: {
+  labelText: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: '800',
     color: colors.white,
+    letterSpacing: 0.5,
   },
-  name: {
-    fontSize: 13,
+  tickerMask: {
+    flex: 1,
+    overflow: 'hidden',
+    height: '100%',
+    justifyContent: 'center',
+  },
+  tickerTrack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  tickerItem: {
+    fontSize: 14,
+    color: colors.gray800,
+  },
+  tickerRank: {
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  tickerName: {
     fontWeight: '600',
     color: colors.gray900,
-    marginBottom: 2,
   },
-  count: {
-    fontSize: 11,
-    color: colors.gray500,
-  },
-  badgeIcon: {
-    fontSize: 14,
-    marginTop: 4,
+  tickerCount: {
+    fontWeight: '500',
+    color: colors.gray400,
+    fontSize: 13,
   },
 });
