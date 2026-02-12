@@ -62,6 +62,9 @@ export default async function handler(req: any, res: any) {
     // 2. Upload to Supabase Storage using the JS client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+    // Ensure the avatars bucket exists (public so URLs work)
+    await supabase.storage.createBucket('avatars', { public: true }).catch(() => {});
+
     const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(`${userId}.png`, buffer, {
