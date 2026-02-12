@@ -156,37 +156,6 @@ export function useDeclineRequest() {
   });
 }
 
-export function useMarkPaid() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      requestId,
-      paidProofPath,
-      paidReference,
-    }: {
-      requestId: string;
-      paidProofPath: string;
-      paidReference: string;
-    }) => {
-      const { data, error } = await supabase.rpc('mark_paid', {
-        p_request_id: requestId,
-        p_paid_proof_path: paidProofPath,
-        p_paid_reference: paidReference,
-      });
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['request', variables.requestId],
-      });
-      queryClient.invalidateQueries({ queryKey: ['requests'] });
-    },
-  });
-}
-
 export function useMarkOrdered() {
   const queryClient = useQueryClient();
 

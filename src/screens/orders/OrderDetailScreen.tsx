@@ -18,7 +18,6 @@ import {
   useRequestRealtime,
   useAcceptRequest,
   useDeclineRequest,
-  useMarkPaid,
   useMarkOrdered,
   useMarkPickedUp,
   useMarkCompleted,
@@ -48,7 +47,6 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'OrderDetail'>;
 const STATUS_COLORS: Record<string, string> = {
   requested: '#6B7280',
   accepted: '#3B82F6',
-  paid: '#8B5CF6',
   ordered: '#F59E0B',
   picked_up: '#F97316',
   completed: '#10B981',
@@ -95,7 +93,6 @@ export function OrderDetailScreen({ route }: Props) {
   // Mutation hooks
   const acceptRequest = useAcceptRequest();
   const declineRequest = useDeclineRequest();
-  const markPaid = useMarkPaid();
   const markOrdered = useMarkOrdered();
   const markPickedUp = useMarkPickedUp();
   const markCompleted = useMarkCompleted();
@@ -185,21 +182,6 @@ export function OrderDetailScreen({ route }: Props) {
             await declineRequest.mutateAsync(requestId);
             break;
 
-          case 'mark_paid': {
-            const paidUri = await selectImage();
-            if (!paidUri) {
-              setActionLoading(false);
-              return;
-            }
-            const paidPath = await uploadImage(paidUri, requestId, 'paid');
-            await markPaid.mutateAsync({
-              requestId,
-              paidProofPath: paidPath,
-              paidReference: '',
-            });
-            break;
-          }
-
           case 'mark_ordered': {
             const orderedUri = await selectImage();
             if (!orderedUri) {
@@ -252,7 +234,6 @@ export function OrderDetailScreen({ route }: Props) {
       requestId,
       acceptRequest,
       declineRequest,
-      markPaid,
       markOrdered,
       markPickedUp,
       markCompleted,

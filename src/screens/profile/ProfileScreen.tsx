@@ -233,25 +233,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 12,
   },
-  venmoCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-  },
-  venmoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  venmoLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray500,
-  },
-  venmoHandle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.primary,
-  },
   postsSection: {
     paddingHorizontal: 16,
     marginBottom: 16,

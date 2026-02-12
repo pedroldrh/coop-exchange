@@ -1,6 +1,6 @@
 # Coop Order Exchange
 
-A campus marketplace mobile app where students with excess meal swipes (Sellers) place Coop mobile orders on behalf of students who want more meals (Buyers). Payment is handled off-app via Venmo.
+A campus marketplace mobile app where students with excess meal swipes (Sharers) place Coop mobile orders on behalf of students who want more meals (Requesters). Swipes are donated for free — no payment involved.
 
 Built with **Expo** (React Native), **Supabase** (database, auth, storage, realtime), and **TanStack Query**.
 
@@ -8,8 +8,8 @@ Built with **Expo** (React Native), **Supabase** (database, auth, storage, realt
 
 - **Email OTP Authentication** — WLU students only (`@mail.wlu.edu`)
 - **Post & Request System** — Sellers post available capacity, buyers request orders
-- **8-Step Order Workflow** — Requested → Accepted → Paid → Ordered → Picked Up → Completed
-- **Proof Uploads** — Photo proof for payment and order placement (anti-scam)
+- **6-Step Order Workflow** — Requested → Accepted → Ordered → Picked Up → Completed
+- **Proof Uploads** — Photo proof for order placement (anti-scam)
 - **In-App Chat** — Real-time messaging between buyer and seller per order
 - **Ratings** — Mutual rating system after order completion
 - **Disputes** — Open disputes within 24 hours, admin resolution
@@ -83,9 +83,9 @@ src/
 ## Order Workflow
 
 ```
-Requested → Accepted → Paid → Ordered → Picked Up → Completed
-    ↓          ↓         ↓
- Cancelled  Cancelled  Cancelled  → Disputed (from Ordered/PickedUp/Completed)
+Requested → Accepted → Ordered → Picked Up → Completed
+    ↓          ↓
+ Cancelled  Cancelled  → Disputed (from Ordered/PickedUp/Completed)
 ```
 
 All status transitions are enforced server-side via Supabase RPC functions with role validation and audit logging.

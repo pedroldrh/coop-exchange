@@ -5,7 +5,6 @@ export const EMAIL_DOMAIN = 'mail.wlu.edu';
 export const REQUEST_STATUS = {
   REQUESTED: 'requested',
   ACCEPTED: 'accepted',
-  PAID: 'paid',
   ORDERED: 'ordered',
   PICKED_UP: 'picked_up',
   COMPLETED: 'completed',
@@ -28,7 +27,6 @@ export type PostStatus = (typeof POST_STATUS)[keyof typeof POST_STATUS];
 export const STATUS_LABELS: Record<RequestStatus, string> = {
   requested: 'Requested',
   accepted: 'Accepted',
-  paid: 'Confirmed',
   ordered: 'Ordered',
   picked_up: 'Picked Up',
   completed: 'Completed',
@@ -40,7 +38,6 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
 export const STATUS_COLORS: Record<RequestStatus, string> = {
   requested: '#F59E0B', // amber
   accepted: '#3B82F6',  // blue
-  paid: '#8B5CF6',      // violet
   ordered: '#6366F1',   // indigo
   picked_up: '#0EA5E9', // sky
   completed: '#22C55E', // green

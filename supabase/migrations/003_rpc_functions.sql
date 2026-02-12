@@ -99,54 +99,7 @@ end;
 $$;
 
 -- ============================================================
--- 3. mark_paid
--- ============================================================
-create or replace function mark_paid(
-  p_request_id     uuid,
-  p_paid_proof_path text default null,
-  p_paid_reference  text default null
-)
-returns requests
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_req requests;
-begin
-  select * into v_req from requests where id = p_request_id;
-  if not found then
-    raise exception 'Request not found';
-  end if;
-
-  if v_req.buyer_id <> auth.uid() then
-    raise exception 'Only the buyer can mark a request as paid';
-  end if;
-
-  if v_req.status <> 'accepted' then
-    raise exception 'Request must be in "accepted" status to mark paid (current: %)', v_req.status;
-  end if;
-
-  if p_paid_proof_path is null and p_paid_reference is null then
-    raise exception 'Must provide either a proof screenshot path or a payment reference';
-  end if;
-
-  update requests
-    set status          = 'paid',
-        paid_proof_path = coalesce(p_paid_proof_path, paid_proof_path),
-        paid_reference  = coalesce(p_paid_reference, paid_reference)
-  where id = p_request_id
-  returning * into v_req;
-
-  insert into audit_log (request_id, actor_id, action, from_status, to_status)
-  values (p_request_id, auth.uid(), 'mark_paid', 'accepted', 'paid');
-
-  return v_req;
-end;
-$$;
-
--- ============================================================
--- 4. mark_ordered
+-- 3. mark_ordered
 -- ============================================================
 create or replace function mark_ordered(
   p_request_id       uuid,
@@ -170,8 +123,8 @@ begin
     raise exception 'Only the seller can mark a request as ordered';
   end if;
 
-  if v_req.status <> 'paid' then
-    raise exception 'Request must be in "paid" status to mark ordered (current: %)', v_req.status;
+  if v_req.status <> 'accepted' then
+    raise exception 'Request must be in "accepted" status to mark ordered (current: %)', v_req.status;
   end if;
 
   if p_ordered_proof_path is null and p_order_id_text is null then
@@ -186,7 +139,7 @@ begin
   returning * into v_req;
 
   insert into audit_log (request_id, actor_id, action, from_status, to_status)
-  values (p_request_id, auth.uid(), 'mark_ordered', 'paid', 'ordered');
+  values (p_request_id, auth.uid(), 'mark_ordered', 'accepted', 'ordered');
 
   return v_req;
 end;
@@ -326,7 +279,7 @@ begin
     raise exception 'Only the buyer or seller can cancel a request';
   end if;
 
-  if v_req.status not in ('requested', 'accepted', 'paid') then
+  if v_req.status not in ('requested', 'accepted') then
     raise exception 'Cannot cancel a request in "%" status', v_req.status;
   end if;
 
@@ -338,7 +291,7 @@ begin
   v_old_status := v_req.status;
 
   -- If cancelling after acceptance, restore post capacity
-  if v_req.status in ('accepted', 'paid') then
+  if v_req.status = 'accepted' then
     update posts
       set capacity_remaining = capacity_remaining + 1,
           status = 'open'

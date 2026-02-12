@@ -73,8 +73,6 @@ export function CreateRequestScreen({ route, navigation }: Props) {
         items_text: buildItemsText(),
         instructions: instructions.trim() || null,
         est_total: total,
-        paid_proof_path: null,
-        paid_reference: null,
         ordered_proof_path: null,
         order_id_text: null,
         buyer_completed: false,

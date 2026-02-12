@@ -15,7 +15,6 @@ create table profiles (
   id              uuid        primary key references auth.users on delete cascade,
   email           text        not null,
   name            text,
-  venmo_handle    text,
   role_preference text        not null default 'buyer'
                               check (role_preference in ('buyer', 'seller', 'admin')),
   rating_avg      numeric(3,2) not null default 0,
@@ -49,14 +48,12 @@ create table requests (
   seller_id          uuid        not null references profiles on delete cascade,
   status             text        not null default 'requested'
                                  check (status in (
-                                   'requested', 'accepted', 'paid', 'ordered',
+                                   'requested', 'accepted', 'ordered',
                                    'picked_up', 'completed', 'cancelled', 'disputed'
                                  )),
   items_text         text        not null,
   instructions       text,
   est_total          numeric(6,2),
-  paid_proof_path    text,
-  paid_reference     text,
   ordered_proof_path text,
   order_id_text      text,
   buyer_completed    bool        not null default false,

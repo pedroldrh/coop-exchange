@@ -14,7 +14,6 @@ const STATUS_FLOW: RequestStatus[] = [
 const STATUS_COLORS: Record<string, string> = {
   requested: '#6B7280',
   accepted: '#3B82F6',
-  paid: '#8B5CF6',
   ordered: '#F59E0B',
   picked_up: '#F97316',
   completed: '#10B981',

@@ -20,7 +20,6 @@ export interface Database {
           id: string;
           email: string;
           name: string | null;
-          venmo_handle: string | null;
           role_preference: 'buyer' | 'seller' | 'admin';
           rating_avg: number;
           completed_count: number;
@@ -34,7 +33,6 @@ export interface Database {
           id: string;
           email: string;
           name?: string | null;
-          venmo_handle?: string | null;
           role_preference?: 'buyer' | 'seller' | 'admin';
           rating_avg?: number;
           completed_count?: number;
@@ -48,7 +46,6 @@ export interface Database {
           id?: string;
           email?: string;
           name?: string | null;
-          venmo_handle?: string | null;
           role_preference?: 'buyer' | 'seller' | 'admin';
           rating_avg?: number;
           completed_count?: number;
@@ -117,7 +114,6 @@ export interface Database {
           status:
             | 'requested'
             | 'accepted'
-            | 'paid'
             | 'ordered'
             | 'picked_up'
             | 'completed'
@@ -126,8 +122,6 @@ export interface Database {
           items_text: string;
           instructions: string | null;
           est_total: number | null;
-          paid_proof_path: string | null;
-          paid_reference: string | null;
           ordered_proof_path: string | null;
           order_id_text: string | null;
           buyer_completed: boolean;
@@ -145,7 +139,6 @@ export interface Database {
           status?:
             | 'requested'
             | 'accepted'
-            | 'paid'
             | 'ordered'
             | 'picked_up'
             | 'completed'
@@ -154,8 +147,6 @@ export interface Database {
           items_text: string;
           instructions?: string | null;
           est_total?: number | null;
-          paid_proof_path?: string | null;
-          paid_reference?: string | null;
           ordered_proof_path?: string | null;
           order_id_text?: string | null;
           buyer_completed?: boolean;
@@ -173,7 +164,6 @@ export interface Database {
           status?:
             | 'requested'
             | 'accepted'
-            | 'paid'
             | 'ordered'
             | 'picked_up'
             | 'completed'
@@ -182,8 +172,6 @@ export interface Database {
           items_text?: string;
           instructions?: string | null;
           est_total?: number | null;
-          paid_proof_path?: string | null;
-          paid_reference?: string | null;
           ordered_proof_path?: string | null;
           order_id_text?: string | null;
           buyer_completed?: boolean;
@@ -427,14 +415,6 @@ export interface Database {
       };
       decline_request: {
         Args: { p_request_id: string };
-        Returns: Database['public']['Tables']['requests']['Row'];
-      };
-      mark_paid: {
-        Args: {
-          p_request_id: string;
-          p_paid_proof_path?: string;
-          p_paid_reference?: string;
-        };
         Returns: Database['public']['Tables']['requests']['Row'];
       };
       mark_ordered: {
