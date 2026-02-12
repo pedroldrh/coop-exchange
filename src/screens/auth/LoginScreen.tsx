@@ -242,8 +242,8 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logoImage: {
-    width: 170,
-    height: 170,
+    width: 120,
+    height: 120,
   },
   tagline: {
     fontSize: 15,
