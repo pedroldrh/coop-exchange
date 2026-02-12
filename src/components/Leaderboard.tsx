@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, Animated, StyleSheet } from 'react-native';
 import { useLeaderboard } from '../hooks/use-leaderboard';
 import { getTopBadge } from '../lib/badges';
 
@@ -16,47 +16,87 @@ const colors = {
 };
 
 const RANK_COLORS = [colors.gold, colors.silver, colors.bronze];
+const CARD_WIDTH = 90;
+const CARD_GAP = 12;
+const SCROLL_SPEED = 30; // pixels per second
 
 export function Leaderboard() {
-  const { data: leaders } = useLeaderboard(5);
+  const { data: leaders } = useLeaderboard(10);
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const animRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    if (!leaders || leaders.length <= 3) return;
+
+    const totalWidth = leaders.length * (CARD_WIDTH + CARD_GAP);
+    const duration = (totalWidth / SCROLL_SPEED) * 1000;
+
+    const startAnimation = () => {
+      scrollX.setValue(0);
+      animRef.current = Animated.timing(scrollX, {
+        toValue: totalWidth,
+        duration,
+        useNativeDriver: true,
+        isInteraction: false,
+      });
+      animRef.current.start(({ finished }) => {
+        if (finished) startAnimation();
+      });
+    };
+
+    startAnimation();
+
+    return () => {
+      animRef.current?.stop();
+    };
+  }, [leaders, scrollX]);
 
   if (!leaders || leaders.length === 0) return null;
+
+  // Duplicate the list so the scroll loops seamlessly
+  const items = leaders.length > 3 ? [...leaders, ...leaders] : leaders;
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Top Swipers</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {leaders.map((profile, index) => {
-          const topBadge = getTopBadge(profile.completed_count);
-          const rankColor = RANK_COLORS[index] ?? colors.gray400;
+      <View style={styles.scrollMask}>
+        <Animated.View
+          style={[
+            styles.track,
+            leaders.length > 3 && {
+              transform: [{ translateX: Animated.multiply(scrollX, -1) }],
+            },
+          ]}
+        >
+          {items.map((profile, index) => {
+            const rank = index % leaders.length;
+            const topBadge = getTopBadge(profile.completed_count);
+            const rankColor = RANK_COLORS[rank] ?? colors.gray400;
 
-          return (
-            <View key={profile.id} style={styles.card}>
-              <View style={[styles.rankCircle, { borderColor: rankColor }]}>
-                <Text style={styles.initials}>
-                  {(profile.name ?? '?')[0].toUpperCase()}
-                </Text>
-                <View style={[styles.rankBadge, { backgroundColor: rankColor }]}>
-                  <Text style={styles.rankText}>{index + 1}</Text>
+            return (
+              <View key={`${profile.id}-${index}`} style={styles.card}>
+                <View style={[styles.rankCircle, { borderColor: rankColor }]}>
+                  <Text style={styles.initials}>
+                    {(profile.name ?? '?')[0].toUpperCase()}
+                  </Text>
+                  <View style={[styles.rankBadge, { backgroundColor: rankColor }]}>
+                    <Text style={styles.rankText}>{rank + 1}</Text>
+                  </View>
                 </View>
+                <Text style={styles.name} numberOfLines={1}>
+                  {profile.name?.split(' ')[0] ?? 'Anon'}
+                </Text>
+                <Text style={styles.count}>
+                  {profile.completed_count} swipe{profile.completed_count !== 1 ? 's' : ''}
+                </Text>
+                {topBadge && (
+                  <Text style={styles.badgeIcon}>{topBadge.icon}</Text>
+                )}
               </View>
-              <Text style={styles.name} numberOfLines={1}>
-                {profile.name?.split(' ')[0] ?? 'Anon'}
-              </Text>
-              <Text style={styles.count}>
-                {profile.completed_count} swipe{profile.completed_count !== 1 ? 's' : ''}
-              </Text>
-              {topBadge && (
-                <Text style={styles.badgeIcon}>{topBadge.icon}</Text>
-              )}
-            </View>
-          );
-        })}
-      </ScrollView>
+            );
+          })}
+        </Animated.View>
+      </View>
     </View>
   );
 }
@@ -71,8 +111,12 @@ const styles = StyleSheet.create({
     color: colors.gray900,
     marginBottom: 12,
   },
-  scrollContent: {
-    gap: 12,
+  scrollMask: {
+    overflow: 'hidden',
+  },
+  track: {
+    flexDirection: 'row',
+    gap: CARD_GAP,
   },
   card: {
     alignItems: 'center',
@@ -80,7 +124,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 12,
     paddingTop: 14,
-    width: 90,
+    width: CARD_WIDTH,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
