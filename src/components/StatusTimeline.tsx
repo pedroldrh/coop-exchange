@@ -63,9 +63,18 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
                 : colors.gray300
               : 'transparent';
 
+          const prevCompleted = index > 0 && !isTerminal && activeIndex >= index;
+          const prevLineColor = prevCompleted
+            ? STATUS_COLORS[STATUS_FLOW[index - 1]]
+            : colors.gray300;
+
           return (
             <View key={status} style={styles.step}>
               <View style={styles.dotRow}>
+                {/* Line before dot (not before first) */}
+                {index > 0 && (
+                  <View style={[styles.line, { backgroundColor: prevLineColor }]} />
+                )}
                 {/* Dot */}
                 <View
                   style={[
@@ -75,7 +84,7 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
                     isCurrent && { borderColor: dotColor },
                   ]}
                 />
-                {/* Connecting line (not after last dot) */}
+                {/* Line after dot (not after last) */}
                 {index < STATUS_FLOW.length - 1 && (
                   <View style={[styles.line, { backgroundColor: lineColor }]} />
                 )}
