@@ -66,7 +66,11 @@ export default function App() {
     <SafeAreaProvider>
       <QueryProvider>
         <AuthProvider>
-          <NavigationContainer>
+          <NavigationContainer
+            documentTitle={{
+              formatter: () => 'Foodie - Eat for Free',
+            }}
+          >
             <RootNavigator />
             <StatusBar style="auto" />
           </NavigationContainer>
