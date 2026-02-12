@@ -11,13 +11,17 @@ export function useAvatarGeneration() {
   const { user } = useAuth();
   const { data: profile } = useProfile();
   const queryClient = useQueryClient();
-  const generating = useRef(false);
+  const attempted = useRef(false);
 
   useEffect(() => {
-    if (!user || !profile || profile.avatar_url || generating.current) return;
+    if (!user || !profile) return;
+    if (profile.avatar_url) return;
     if (!profile.name) return;
+    if (attempted.current) return;
 
-    generating.current = true;
+    attempted.current = true;
+
+    console.log('[Avatar] Generating avatar for', profile.name);
 
     fetch('/api/generate-avatar', {
       method: 'POST',
@@ -27,14 +31,19 @@ export function useAvatarGeneration() {
         nickname: profile.name,
       }),
     })
-      .then((res) => {
+      .then(async (res) => {
+        const data = await res.json();
+        console.log('[Avatar] Response:', res.status, data);
         if (res.ok) {
           queryClient.invalidateQueries({ queryKey: ['profile'] });
+        } else {
+          // Allow retry on next mount
+          attempted.current = false;
         }
       })
-      .catch(() => {})
-      .finally(() => {
-        generating.current = false;
+      .catch((err) => {
+        console.error('[Avatar] Error:', err);
+        attempted.current = false;
       });
   }, [user, profile, queryClient]);
 }
