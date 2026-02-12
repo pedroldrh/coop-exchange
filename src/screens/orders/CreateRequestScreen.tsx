@@ -82,7 +82,7 @@ export function CreateRequestScreen({ route, navigation }: Props) {
         cancel_reason: null,
         cancelled_by: null,
       });
-      navigation.navigate('OrderDetail', { requestId: result.id });
+      navigation.replace('OrderDetail', { requestId: result.id });
     } catch (error: any) {
       showAlert('Error', error?.message ?? 'Failed to submit request');
     }
