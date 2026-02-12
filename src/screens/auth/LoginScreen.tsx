@@ -68,13 +68,15 @@ export function LoginScreen() {
       >
         {/* Hero / Branding */}
         <View style={styles.hero}>
-          <Image
-            source={require('../../../assets/logo.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <View style={styles.logoCircle}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.tagline}>
-            Share your meal swipes with fellow Generals
+            Give your meal swipes to other Gennies and get access to free food
           </Text>
         </View>
 
@@ -224,10 +226,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoImage: {
-    width: 200,
+  logoCircle: {
+    width: 120,
     height: 120,
-    marginBottom: 12,
+    borderRadius: 60,
+    backgroundColor: CARD_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: PRIMARY,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
   },
   tagline: {
     fontSize: 15,
