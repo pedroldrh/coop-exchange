@@ -54,44 +54,34 @@ const setupStyles = StyleSheet.create({
 
 // Inject web overflow fix immediately (outside component lifecycle)
 if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  // CSS layer
   const id = '__foodie_no_scroll';
   if (!document.getElementById(id)) {
     const style = document.createElement('style');
     style.id = id;
     style.textContent = `
-      html {
+      html, body {
         overflow: hidden !important;
         overscroll-behavior: none !important;
       }
       body {
-        overflow: hidden !important;
-        overscroll-behavior: none !important;
         position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
+        inset: 0 !important;
         width: 100% !important;
         height: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
-        touch-action: pan-y !important;
-      }
-      #root, #root > div, #root > div > div {
-        overflow: hidden !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100vw !important;
-      }
-      * {
-        overscroll-behavior: none !important;
-        -webkit-overflow-scrolling: auto !important;
-      }
-      [data-testid], div[style] {
-        touch-action: pan-y !important;
       }
     `;
     document.head.appendChild(style);
+  }
+
+  // JS layer — snap window scroll back to 0 whenever anything causes drift
+  window.addEventListener('scroll', () => window.scrollTo(0, 0), true);
+
+  // Ensure viewport meta prevents zooming/scaling
+  let vp = document.querySelector('meta[name="viewport"]') as HTMLMetaElement;
+  if (vp) {
+    vp.content = 'width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no';
   }
 }
 
