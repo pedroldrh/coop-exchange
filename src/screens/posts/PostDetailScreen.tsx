@@ -138,16 +138,18 @@ export function PostDetailScreen({ route, navigation }: Props) {
         </View>
       </Card>
 
-      {/* Request Order Button */}
-      <View style={styles.actionSection}>
-        <Button
-          title={isFull ? 'No Swipes Available' : 'Request Food'}
-          onPress={handleRequestOrder}
-          disabled={isFull}
-          fullWidth
-          size="lg"
-        />
-      </View>
+      {/* Request Order Button — only for other people's posts */}
+      {!isOwner && (
+        <View style={styles.actionSection}>
+          <Button
+            title={isFull ? 'No Swipes Available' : 'Request Food'}
+            onPress={handleRequestOrder}
+            disabled={isFull}
+            fullWidth
+            size="lg"
+          />
+        </View>
+      )}
 
       {/* Existing requests (visible to post owner) */}
       {isOwner && requests && requests.length > 0 && (
