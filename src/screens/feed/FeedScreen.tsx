@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -262,6 +262,7 @@ const styles = StyleSheet.create({
   fabLabel: {
     fontSize: 16,
     color: colors.white,
+    marginRight: 16,
     fontWeight: '600',
     marginLeft: 8,
   },
