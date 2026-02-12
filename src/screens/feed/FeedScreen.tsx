@@ -13,6 +13,7 @@ import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
 import { usePosts, useMyPosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
+import { Leaderboard } from '../../components/Leaderboard';
 import { Loading } from '../../components/ui/Loading';
 import { showAlert } from '../../lib/utils';
 import type { Post, Profile } from '../../types/database';
@@ -110,6 +111,7 @@ export function FeedScreen({ navigation }: Props) {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}
+        ListHeaderComponent={<Leaderboard />}
         ListEmptyComponent={renderEmpty}
         refreshControl={
           <RefreshControl

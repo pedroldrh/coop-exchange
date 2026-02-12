@@ -4,6 +4,7 @@ import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { StarDisplay } from './StarDisplay';
 import { formatRelativeTime } from '../lib/utils';
+import { getTopBadge } from '../lib/badges';
 import type { Post, Profile } from '../types/database';
 
 type PostWithSeller = Post & {
@@ -34,15 +35,26 @@ export function PostCard({ post, onPress }: PostCardProps) {
       : swipes <= 2
         ? colors.warning
         : colors.success;
+  const topBadge = getTopBadge(post.seller.completed_count);
 
   return (
     <Card onPress={onPress} style={styles.card}>
       {/* Header: seller info + time */}
       <View style={styles.header}>
         <View style={styles.sellerInfo}>
-          <Text style={styles.sellerName}>
-            {post.seller.name ?? 'Anonymous'}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.sellerName}>
+              {post.seller.name ?? 'Anonymous'}
+            </Text>
+            {topBadge && (
+              <View style={[styles.topBadge, { backgroundColor: topBadge.color + '18' }]}>
+                <Text style={styles.topBadgeIcon}>{topBadge.icon}</Text>
+                <Text style={[styles.topBadgeLabel, { color: topBadge.color }]}>
+                  {topBadge.label}
+                </Text>
+              </View>
+            )}
+          </View>
           <StarDisplay rating={post.seller.rating_avg} size={14} />
         </View>
         <Text style={styles.timeAgo}>{formatRelativeTime(post.created_at)}</Text>
@@ -78,10 +90,31 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     gap: 2,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexWrap: 'wrap',
+  },
   sellerName: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.gray900,
+  },
+  topBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    gap: 2,
+  },
+  topBadgeIcon: {
+    fontSize: 10,
+  },
+  topBadgeLabel: {
+    fontSize: 10,
+    fontWeight: '600',
   },
   timeAgo: {
     fontSize: 12,

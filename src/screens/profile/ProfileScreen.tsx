@@ -16,6 +16,7 @@ import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
 import { StarDisplay } from '../../components/StarDisplay';
 import { PostCard } from '../../components/PostCard';
+import { BadgeDisplay } from '../../components/BadgeDisplay';
 import { getInitials, showAlert, showConfirm } from '../../lib/utils';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
@@ -69,6 +70,7 @@ export function ProfileScreen({ navigation }: Props) {
   }
 
   const initials = getInitials(profile.name ?? '');
+  const isFreshman = profile.role_preference === 'seller';
   const roleLabel =
     profile.role_preference === 'admin'
       ? 'Admin'
@@ -106,10 +108,20 @@ export function ProfileScreen({ navigation }: Props) {
               showValue
             />
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Completed</Text>
-            <Text style={styles.statValue}>{profile.completed_count}</Text>
-          </View>
+          {isFreshman && (
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Swipes Shared</Text>
+              <Text style={[styles.statValue, styles.statPrimary]}>
+                {profile.completed_count}
+              </Text>
+            </View>
+          )}
+          {!isFreshman && (
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Completed</Text>
+              <Text style={styles.statValue}>{profile.completed_count}</Text>
+            </View>
+          )}
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Cancelled</Text>
             <Text style={[styles.statValue, styles.statDanger]}>
@@ -118,6 +130,14 @@ export function ProfileScreen({ navigation }: Props) {
           </View>
         </View>
       </Card>
+
+      {/* Badges — freshmen only */}
+      {isFreshman && (
+        <Card style={styles.badgesCard}>
+          <Text style={styles.sectionTitle}>Badges</Text>
+          <BadgeDisplay completedCount={profile.completed_count} />
+        </Card>
+      )}
 
       {/* My Swipe Shares */}
       <View style={styles.postsSection}>
@@ -243,6 +263,13 @@ const styles = StyleSheet.create({
   },
   statDanger: {
     color: colors.danger,
+  },
+  statPrimary: {
+    color: colors.primary,
+  },
+  badgesCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
   },
   venmoCard: {
     marginHorizontal: 16,
