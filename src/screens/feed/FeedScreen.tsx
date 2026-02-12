@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   fabIcon: {
     fontSize: 24,
     textAlign: 'center',
-    paddingLeft: 4,
+    paddingLeft: 10,
   },
   fabLabel: {
     fontSize: 16,
