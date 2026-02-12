@@ -59,17 +59,20 @@ export default async function handler(req: any, res: any) {
     const b64 = openaiData.data[0].b64_json;
     const buffer = Buffer.from(b64, 'base64');
 
-    // 2. Upload to Supabase Storage (avatars bucket)
+    // 2. Upload to Supabase Storage (avatars bucket) using FormData
+    const formData = new FormData();
+    const blob = new Blob([buffer], { type: 'image/png' });
+    formData.append('', blob, `${userId}.png`);
+
     const uploadRes = await fetch(
       `${SUPABASE_URL}/storage/v1/object/avatars/${userId}.png`,
       {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'Content-Type': 'image/png',
           'x-upsert': 'true',
         },
-        body: buffer,
+        body: formData,
       },
     );
 
