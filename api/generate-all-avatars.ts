@@ -17,10 +17,13 @@ export default async function handler(req: any, res: any) {
     return res.status(500).json({ error: 'Missing server configuration' });
   }
 
+  // offset param lets us iterate through ALL users (even those with avatars)
+  const offset = parseInt(req.body?.offset ?? '0', 10);
+
   try {
-    // 1. Find ONE profile without an avatar
+    // 1. Find ONE profile at the given offset
     const profilesRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?avatar_url=is.null&name=not.is.null&select=id,name&limit=1`,
+      `${SUPABASE_URL}/rest/v1/profiles?name=not.is.null&select=id,name&order=id&limit=1&offset=${offset}`,
       {
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -32,8 +35,20 @@ export default async function handler(req: any, res: any) {
     const profiles = await profilesRes.json();
 
     if (!profiles.length) {
-      return res.status(200).json({ message: 'All users already have avatars', remaining: 0 });
+      return res.status(200).json({ message: 'All done! No more users.', done: true });
     }
+
+    // Get total count
+    const totalRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?name=not.is.null&select=id`,
+      {
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_SERVICE_KEY,
+        },
+      },
+    );
+    const total = (await totalRes.json()).length;
 
     const { id: userId, name: nickname } = profiles[0];
     const words = nicknameToWords(nickname);
@@ -96,20 +111,11 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({ avatar_url: avatarUrl }),
     });
 
-    // 5. Count remaining
-    const remainingRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?avatar_url=is.null&name=not.is.null&select=id`,
-      {
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'apikey': SUPABASE_SERVICE_KEY,
-        },
-      },
-    );
-    const remaining = (await remainingRes.json()).length;
+    const remaining = total - offset - 1;
 
     return res.status(200).json({
       message: `Generated avatar for "${nickname}"`,
+      nextOffset: offset + 1,
       remaining,
       avatar_url: avatarUrl,
     });
