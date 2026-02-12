@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -67,10 +68,11 @@ export function LoginScreen() {
       >
         {/* Hero / Branding */}
         <View style={styles.hero}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoEmoji}>🍽</Text>
-          </View>
-          <Text style={styles.appName}>Swipe Share</Text>
+          <Image
+            source={require('../../../assets/logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
           <Text style={styles.tagline}>
             Share your meal swipes with fellow Generals
           </Text>
@@ -222,29 +224,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: PRIMARY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    shadowColor: PRIMARY,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  logoEmoji: {
-    fontSize: 32,
-  },
-  appName: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: TEXT_PRIMARY,
-    letterSpacing: -0.5,
-    marginBottom: 6,
+  logoImage: {
+    width: 200,
+    height: 120,
+    marginBottom: 12,
   },
   tagline: {
     fontSize: 15,

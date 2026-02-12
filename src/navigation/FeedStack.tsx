@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image, StyleSheet } from 'react-native';
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../types/navigation';
 import { FeedScreen } from '../screens/feed/FeedScreen';
@@ -20,7 +21,15 @@ export function FeedStack() {
       <Stack.Screen
         name="Feed"
         component={FeedScreen as any}
-        options={{ title: 'Feed' }}
+        options={{
+          headerTitle: () => (
+            <Image
+              source={require('../../assets/logo.png')}
+              style={feedStyles.headerLogo}
+              resizeMode="contain"
+            />
+          ),
+        }}
       />
       <Stack.Screen
         name="PostDetail"
@@ -45,3 +54,10 @@ export function FeedStack() {
     </Stack.Navigator>
   );
 }
+
+const feedStyles = StyleSheet.create({
+  headerLogo: {
+    width: 100,
+    height: 36,
+  },
+});
