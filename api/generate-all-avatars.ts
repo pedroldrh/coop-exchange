@@ -7,14 +7,7 @@ function nicknameToWords(nickname: string): string {
 }
 
 export default async function handler(req: any, res: any) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { userId, nickname } = req.body;
-  if (!userId || !nickname) return res.status(400).json({ error: 'userId and nickname required' });
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -25,8 +18,27 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // 1. Generate image with DALL-E 3
+    // 1. Find ONE profile without an avatar
+    const profilesRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?avatar_url=is.null&name=not.is.null&select=id,name&limit=1`,
+      {
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_SERVICE_KEY,
+        },
+      },
+    );
+
+    const profiles = await profilesRes.json();
+
+    if (!profiles.length) {
+      return res.status(200).json({ message: 'All users already have avatars', remaining: 0 });
+    }
+
+    const { id: userId, name: nickname } = profiles[0];
     const words = nicknameToWords(nickname);
+
+    // 2. Generate image with DALL-E 3
     const prompt = `A stylized humanlike character avatar inspired by the name "${words}". The character should visually represent the name — for example if the name includes a food item, the person could be holding or wearing it. No text or letters anywhere in the image. Friendly expressive face, vibrant colors, solid simple background, digital art, profile picture style.`;
 
     const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
@@ -46,18 +58,16 @@ export default async function handler(req: any, res: any) {
 
     if (!openaiRes.ok) {
       const err = await openaiRes.json();
-      return res.status(500).json({ error: 'Image generation failed', details: err });
+      return res.status(500).json({ error: 'Image generation failed', nickname, details: err });
     }
 
     const openaiData = await openaiRes.json();
     const b64 = openaiData.data[0].b64_json;
     const buffer = Buffer.from(b64, 'base64');
 
-    // 2. Upload to Supabase Storage via REST API directly
+    // 3. Upload to Supabase Storage
     const filePath = `${userId}.png`;
-    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`;
-
-    const uploadRes = await fetch(uploadUrl, {
+    const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -70,14 +80,12 @@ export default async function handler(req: any, res: any) {
 
     if (!uploadRes.ok) {
       const uploadErr = await uploadRes.text();
-      return res.status(500).json({ error: 'Storage upload failed', status: uploadRes.status, details: uploadErr });
+      return res.status(500).json({ error: 'Storage upload failed', nickname, details: uploadErr });
     }
 
-    // 3. Build public URL
+    // 4. Update profile
     const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filePath}`;
-
-    // 4. Update profile via REST API
-    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+    await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
       method: 'PATCH',
       headers: {
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -88,12 +96,23 @@ export default async function handler(req: any, res: any) {
       body: JSON.stringify({ avatar_url: avatarUrl }),
     });
 
-    if (!updateRes.ok) {
-      const updateErr = await updateRes.text();
-      return res.status(500).json({ error: 'Profile update failed', status: updateRes.status, details: updateErr });
-    }
+    // 5. Count remaining
+    const remainingRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?avatar_url=is.null&name=not.is.null&select=id`,
+      {
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_SERVICE_KEY,
+        },
+      },
+    );
+    const remaining = (await remainingRes.json()).length;
 
-    return res.status(200).json({ avatar_url: avatarUrl });
+    return res.status(200).json({
+      message: `Generated avatar for "${nickname}"`,
+      remaining,
+      avatar_url: avatarUrl,
+    });
   } catch (err: any) {
     return res.status(500).json({ error: err.message ?? 'Unknown error' });
   }
