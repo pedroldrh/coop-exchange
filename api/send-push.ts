@@ -86,7 +86,7 @@ export default async function handler(req: any, res: any) {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Coop Exchange <notifications@coopexchange.app>',
+        from: 'Coop Exchange <notifications@foodie-co.com>',
         to: [recipientEmail],
         subject: notification.title,
         html: `<p>Hi ${recipientName},</p><p>${notification.body}</p><p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>`,
