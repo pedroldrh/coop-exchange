@@ -57,7 +57,7 @@ export function OrderActions({
         </View>
       )}
 
-      {/* Accepted + Seller (Freshman): Mark as Ordered */}
+      {/* Accepted + Seller (Sharer): Mark as Ordered */}
       {status === 'accepted' && isSeller && (
         <Button
           title="Mark as Ordered"

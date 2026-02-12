@@ -11,7 +11,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
-import { usePosts, useMyPosts, useCreatePost } from '../../hooks/use-posts';
+import { usePosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
 import { Loading } from '../../components/ui/Loading';
@@ -36,30 +36,23 @@ const SWIPE_OPTIONS = [1, 2, 3, 4, 5];
 export function FeedScreen({ navigation }: Props) {
   const { user, profile } = useAuth();
   const { data: posts, isLoading, refetch, isRefetching } = usePosts();
-  const { data: myPosts } = useMyPosts();
   const createPost = useCreatePost();
   const [showSwipeModal, setShowSwipeModal] = useState(false);
 
-  const showCreateButton =
-    profile?.role_preference === 'seller' ||
-    (myPosts && myPosts.length > 0);
-
-  const isFreshman = profile?.role_preference === 'seller';
-
   const handlePostPress = useCallback(
     (post: PostWithSeller) => {
-      if (isFreshman) {
-        // Freshmen see their own post details / incoming requests
+      if (user?.id === post.seller_id) {
+        // Own post — see details and incoming requests
         navigation.navigate('PostDetail', { postId: post.id });
       } else {
-        // Upperclassmen go straight to the menu picker
+        // Someone else's post — go straight to menu picker
         navigation.navigate('CreateRequest', {
           postId: post.id,
           sellerId: post.seller_id,
         });
       }
     },
-    [navigation, isFreshman],
+    [navigation, user?.id],
   );
 
   const handleSwipeSelect = useCallback(
@@ -123,7 +116,7 @@ export function FeedScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       />
 
-      {showCreateButton && (
+      {user && (
         <Pressable
           style={({ pressed }) => [
             styles.fab,

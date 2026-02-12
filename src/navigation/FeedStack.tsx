@@ -20,7 +20,7 @@ export function FeedStack() {
       <Stack.Screen
         name="Feed"
         component={FeedScreen as any}
-        options={{ title: 'Swipes' }}
+        options={{ title: 'Feed' }}
       />
       <Stack.Screen
         name="PostDetail"

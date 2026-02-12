@@ -115,7 +115,7 @@ export function OrderDetailScreen({ route }: Props) {
   // Determine user role
   const isBuyer = user?.id === request?.buyer_id;
   const isSeller = user?.id === request?.seller_id;
-  const roleLabel = isBuyer ? 'Requester' : isSeller ? 'Freshman' : '';
+  const roleLabel = isBuyer ? 'Requester' : isSeller ? 'Sharer' : '';
 
   // Auto-show rating modal after completion
   const hasRated =
@@ -351,7 +351,7 @@ export function OrderDetailScreen({ route }: Props) {
               <Text style={styles.headerArrow}>{'<>'}</Text>
             </View>
             <View style={styles.headerParty}>
-              <Text style={styles.headerPartyLabel}>Freshman</Text>
+              <Text style={styles.headerPartyLabel}>Sharer</Text>
               <Text style={styles.headerPartyName}>
                 {request.seller.name ?? 'Anonymous'}
               </Text>

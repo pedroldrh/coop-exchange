@@ -11,7 +11,6 @@ export function useLeaderboard(limit = 5) {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('role_preference', 'seller')
         .gt('completed_count', 0)
         .order('completed_count', { ascending: false })
         .limit(limit);

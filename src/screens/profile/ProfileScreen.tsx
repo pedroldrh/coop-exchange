@@ -70,13 +70,10 @@ export function ProfileScreen({ navigation }: Props) {
   }
 
   const initials = getInitials(profile.name ?? '');
-  const isFreshman = profile.role_preference === 'seller';
   const roleLabel =
     profile.role_preference === 'admin'
       ? 'Admin'
-      : profile.role_preference === 'seller'
-        ? 'Freshman'
-        : 'Upperclassman';
+      : 'Member';
 
   return (
     <ScrollView
@@ -108,20 +105,12 @@ export function ProfileScreen({ navigation }: Props) {
               showValue
             />
           </View>
-          {isFreshman && (
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Swipes Shared</Text>
-              <Text style={[styles.statValue, styles.statPrimary]}>
-                {profile.completed_count}
-              </Text>
-            </View>
-          )}
-          {!isFreshman && (
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Completed</Text>
-              <Text style={styles.statValue}>{profile.completed_count}</Text>
-            </View>
-          )}
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Swipes Shared</Text>
+            <Text style={[styles.statValue, styles.statPrimary]}>
+              {profile.completed_count}
+            </Text>
+          </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Cancelled</Text>
             <Text style={[styles.statValue, styles.statDanger]}>
@@ -131,13 +120,11 @@ export function ProfileScreen({ navigation }: Props) {
         </View>
       </Card>
 
-      {/* Badges — freshmen only */}
-      {isFreshman && (
-        <Card style={styles.badgesCard}>
-          <Text style={styles.sectionTitle}>Badges</Text>
-          <BadgeDisplay completedCount={profile.completed_count} />
-        </Card>
-      )}
+      {/* Badges */}
+      <Card style={styles.badgesCard}>
+        <Text style={styles.sectionTitle}>Badges</Text>
+        <BadgeDisplay completedCount={profile.completed_count} />
+      </Card>
 
       {/* My Swipe Shares */}
       <View style={styles.postsSection}>

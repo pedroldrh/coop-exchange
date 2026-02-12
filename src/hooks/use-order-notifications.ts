@@ -31,7 +31,7 @@ async function requestPermissions() {
  * go place the order.
  */
 export function useOrderNotifications() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const permissionsRequested = useRef(false);
 
@@ -43,8 +43,7 @@ export function useOrderNotifications() {
   }, []);
 
   useEffect(() => {
-    // Only listen if the user is a freshman (seller)
-    if (!user || profile?.role_preference !== 'seller') return;
+    if (!user) return;
 
     const channel = supabase
       .channel('seller-new-requests')
@@ -99,5 +98,5 @@ export function useOrderNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, profile?.role_preference, queryClient]);
+  }, [user, queryClient]);
 }
