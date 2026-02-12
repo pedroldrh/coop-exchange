@@ -83,6 +83,13 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
         height: 100% !important;
         max-width: 100vw !important;
       }
+      * {
+        overscroll-behavior: none !important;
+        -webkit-overflow-scrolling: auto !important;
+      }
+      [data-testid], div[style] {
+        touch-action: pan-y !important;
+      }
     `;
     document.head.appendChild(style);
   }
