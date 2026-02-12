@@ -43,40 +43,37 @@ export function FeedScreen({ navigation }: Props) {
   const fabWidth = useRef(new Animated.Value(60)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
 
-  const handleFabPress = useCallback(() => {
-    if (!fabExpanded.current) {
-      // First tap: expand to show label
-      fabExpanded.current = true;
-      Animated.parallel([
-        Animated.spring(fabWidth, {
-          toValue: 220,
-          useNativeDriver: false,
-          friction: 7,
-        }),
-        Animated.timing(textOpacity, {
-          toValue: 1,
-          duration: 200,
-          delay: 80,
-          useNativeDriver: false,
-        }),
-      ]).start();
-    } else {
-      // Second tap: open modal and collapse
-      setShowSwipeModal(true);
-      fabExpanded.current = false;
-      Animated.parallel([
-        Animated.spring(fabWidth, {
-          toValue: 60,
-          useNativeDriver: false,
-          friction: 7,
-        }),
-        Animated.timing(textOpacity, {
-          toValue: 0,
-          duration: 100,
-          useNativeDriver: false,
-        }),
-      ]).start();
-    }
+  const expandFab = useCallback(() => {
+    fabExpanded.current = true;
+    Animated.parallel([
+      Animated.spring(fabWidth, {
+        toValue: 220,
+        useNativeDriver: false,
+        friction: 7,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: 1,
+        duration: 200,
+        delay: 80,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [fabWidth, textOpacity]);
+
+  const collapseFab = useCallback(() => {
+    fabExpanded.current = false;
+    Animated.parallel([
+      Animated.spring(fabWidth, {
+        toValue: 60,
+        useNativeDriver: false,
+        friction: 7,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: false,
+      }),
+    ]).start();
   }, [fabWidth, textOpacity]);
 
   const handlePostPress = useCallback(
@@ -157,7 +154,13 @@ export function FeedScreen({ navigation }: Props) {
       />
 
       {user && (
-        <Pressable onPress={handleFabPress}>
+        <Pressable
+          onPressIn={expandFab}
+          onPressOut={() => {
+            collapseFab();
+            setShowSwipeModal(true);
+          }}
+        >
           <Animated.View style={[styles.fab, { width: fabWidth }]}>
             <Text style={styles.fabIcon}>❤️</Text>
             <Animated.Text style={[styles.fabLabel, { opacity: textOpacity }]}>
