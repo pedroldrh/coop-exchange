@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -52,25 +52,35 @@ const setupStyles = StyleSheet.create({
   step: { fontSize: 14, color: '#374151', lineHeight: 28 },
 });
 
-export default function App() {
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const style = document.createElement('style');
-      style.textContent = `
-        html, body, #root {
-          overflow: hidden !important;
-          height: 100% !important;
-          width: 100% !important;
-          max-width: 100vw !important;
-        }
-        body {
-          margin: 0 !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, []);
+// Inject web overflow fix immediately (outside component lifecycle)
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const id = '__foodie_no_scroll';
+  if (!document.getElementById(id)) {
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = `
+      html, body, #root {
+        overflow: hidden !important;
+        height: 100% !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      #root > div {
+        overflow: hidden !important;
+        max-width: 100vw !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
 
+const webClip = Platform.OS === 'web'
+  ? { overflow: 'hidden' as const, maxWidth: '100vw' as any }
+  : {};
+
+export default function App() {
   if (!supabaseConfigured) {
     return (
       <SafeAreaProvider>
@@ -81,19 +91,21 @@ export default function App() {
   }
 
   return (
-    <SafeAreaProvider>
-      <QueryProvider>
-        <AuthProvider>
-          <NavigationContainer
-            documentTitle={{
-              formatter: () => 'Foodie - Eat for Free',
-            }}
-          >
-            <RootNavigator />
-            <StatusBar style="auto" />
-          </NavigationContainer>
-        </AuthProvider>
-      </QueryProvider>
-    </SafeAreaProvider>
+    <View style={[{ flex: 1 }, webClip]}>
+      <SafeAreaProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <NavigationContainer
+              documentTitle={{
+                formatter: () => 'Foodie - Eat for Free',
+              }}
+            >
+              <RootNavigator />
+              <StatusBar style="auto" />
+            </NavigationContainer>
+          </AuthProvider>
+        </QueryProvider>
+      </SafeAreaProvider>
+    </View>
   );
 }
