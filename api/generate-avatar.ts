@@ -1,3 +1,5 @@
+import { createClient } from '@supabase/supabase-js';
+
 function nicknameToWords(nickname: string): string {
   return nickname
     .replace(/[0-9]+$/g, '')
@@ -7,27 +9,25 @@ function nicknameToWords(nickname: string): string {
 }
 
 export default async function handler(req: any, res: any) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { userId, nickname } = req.body;
-  if (!userId || !nickname) {
-    return res.status(400).json({ error: 'userId and nickname required' });
-  }
+  if (!userId || !nickname) return res.status(400).json({ error: 'userId and nickname required' });
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    return res.status(500).json({ error: 'Missing server configuration' });
+    return res.status(500).json({ error: 'Missing server configuration', missing: {
+      openai: !OPENAI_API_KEY,
+      supabaseUrl: !SUPABASE_URL,
+      supabaseKey: !SUPABASE_SERVICE_KEY,
+    }});
   }
 
   try {
@@ -59,48 +59,35 @@ export default async function handler(req: any, res: any) {
     const b64 = openaiData.data[0].b64_json;
     const buffer = Buffer.from(b64, 'base64');
 
-    // 2. Upload to Supabase Storage (avatars bucket) using FormData
-    const formData = new FormData();
-    const blob = new Blob([buffer], { type: 'image/png' });
-    formData.append('', blob, `${userId}.png`);
+    // 2. Upload to Supabase Storage using the JS client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    const uploadRes = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/avatars/${userId}.png`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'x-upsert': 'true',
-        },
-        body: formData,
-      },
-    );
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(`${userId}.png`, buffer, {
+        contentType: 'image/png',
+        upsert: true,
+      });
 
-    if (!uploadRes.ok) {
-      const err = await uploadRes.text();
-      return res.status(500).json({ error: 'Storage upload failed', details: err });
+    if (uploadError) {
+      return res.status(500).json({ error: 'Storage upload failed', details: uploadError.message });
     }
 
-    // 3. Build public URL and update profile
-    const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${userId}.png`;
+    // 3. Get public URL
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(`${userId}.png`);
 
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
-      {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal',
-        },
-        body: JSON.stringify({ avatar_url: avatarUrl }),
-      },
-    );
+    const avatarUrl = urlData.publicUrl;
 
-    if (!updateRes.ok) {
-      const err = await updateRes.text();
-      return res.status(500).json({ error: 'Profile update failed', details: err });
+    // 4. Update profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: avatarUrl })
+      .eq('id', userId);
+
+    if (updateError) {
+      return res.status(500).json({ error: 'Profile update failed', details: updateError.message });
     }
 
     return res.status(200).json({ avatar_url: avatarUrl });

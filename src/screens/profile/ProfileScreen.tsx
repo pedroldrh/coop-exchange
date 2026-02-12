@@ -1,13 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   Pressable,
+  ActivityIndicator,
   StyleSheet,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ProfileStackParamList } from '../../types/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../hooks/use-auth';
 import { useProfile } from '../../hooks/use-profile';
 import { useMyPosts } from '../../hooks/use-posts';
@@ -44,6 +46,31 @@ export function ProfileScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
   const { data: profile, isLoading } = useProfile();
   const { data: myPosts } = useMyPosts();
+  const queryClient = useQueryClient();
+  const [generatingAvatar, setGeneratingAvatar] = useState(false);
+
+  const handleGenerateAvatar = useCallback(async () => {
+    if (!user || !profile?.name) return;
+    setGeneratingAvatar(true);
+    try {
+      const res = await fetch('/api/generate-avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, nickname: profile.name }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
+        showAlert('Avatar Generated', 'Your new avatar is ready!');
+      } else {
+        showAlert('Error', data.error ?? 'Failed to generate avatar');
+      }
+    } catch (err: any) {
+      showAlert('Error', err?.message ?? 'Failed to generate avatar');
+    } finally {
+      setGeneratingAvatar(false);
+    }
+  }, [user, profile, queryClient]);
 
   const displayPosts = myPosts?.slice(0, 5) ?? [];
   const hasMorePosts = (myPosts?.length ?? 0) > 5;
@@ -79,9 +106,22 @@ export function ProfileScreen({ navigation }: Props) {
     >
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        <View style={{ marginBottom: 12 }}>
+        <View style={{ marginBottom: 8 }}>
           <Avatar name={profile.name} avatarUrl={profile.avatar_url} size={80} />
         </View>
+        <Pressable
+          onPress={handleGenerateAvatar}
+          disabled={generatingAvatar}
+          style={styles.generateBtn}
+        >
+          {generatingAvatar ? (
+            <ActivityIndicator size="small" color={colors.primary} />
+          ) : (
+            <Text style={styles.generateText}>
+              {profile.avatar_url ? 'Regenerate Avatar' : 'Generate Avatar'}
+            </Text>
+          )}
+        </Pressable>
         <Text style={styles.userName}>{profile.name ?? 'Anonymous'}</Text>
         <Text style={styles.userEmail}>{profile.email}</Text>
         <View style={styles.roleBadge}>
@@ -170,6 +210,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray200,
+  },
+  generateBtn: {
+    marginBottom: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+  },
+  generateText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.primary,
   },
   userName: {
     fontSize: 22,
