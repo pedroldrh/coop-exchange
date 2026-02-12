@@ -58,8 +58,13 @@ export default function App() {
       const style = document.createElement('style');
       style.textContent = `
         html, body, #root {
-          overflow-x: hidden !important;
+          overflow: hidden !important;
+          height: 100% !important;
+          width: 100% !important;
           max-width: 100vw !important;
+        }
+        body {
+          margin: 0 !important;
         }
       `;
       document.head.appendChild(style);

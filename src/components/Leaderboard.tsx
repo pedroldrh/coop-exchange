@@ -122,11 +122,15 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden',
     height: '100%',
-    justifyContent: 'center',
+    position: 'relative',
   },
   tickerTrack: {
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
   },
   tickerEntry: {
     flexDirection: 'row',
