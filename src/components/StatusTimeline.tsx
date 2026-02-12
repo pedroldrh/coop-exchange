@@ -116,12 +116,11 @@ const styles = StyleSheet.create({
   },
   trackRow: {
     position: 'absolute',
-    top: DOT_TOP + DOT_SIZE / 2 - 1.5,
-    left: 0,
-    right: 0,
+    top: 12 + DOT_SIZE / 2 - 1.5,
+    left: 30,
+    right: 30,
     flexDirection: 'row',
     height: 3,
-    paddingHorizontal: '10%',
   },
   segment: {
     flex: 1,
