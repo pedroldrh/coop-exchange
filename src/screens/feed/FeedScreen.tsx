@@ -255,15 +255,15 @@ const styles = StyleSheet.create({
   },
   fabIcon: {
     fontSize: 24,
-    textAlign: 'center',
-    paddingLeft: 10,
   },
   fabLabel: {
     fontSize: 16,
     color: colors.white,
-    marginRight: 16,
     fontWeight: '600',
     marginLeft: 8,
+    marginRight: 16,
+    position: 'absolute',
+    left: 50,
   },
   // Modal styles
   modalBackdrop: {
