@@ -80,7 +80,7 @@ export function ProfileScreen({ navigation }: Props) {
       {/* Profile Header */}
       <View style={styles.profileHeader}>
         <View style={{ marginBottom: 12 }}>
-          <Avatar name={profile.name} size={80} />
+          <Avatar name={profile.name} avatarUrl={profile.avatar_url} size={80} />
         </View>
         <Text style={styles.userName}>{profile.name ?? 'Anonymous'}</Text>
         <Text style={styles.userEmail}>{profile.email}</Text>

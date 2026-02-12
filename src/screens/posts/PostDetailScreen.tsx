@@ -94,7 +94,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
       <Card style={styles.sellerCard}>
         <View style={styles.sellerHeader}>
           <View style={{ marginRight: 12 }}>
-            <Avatar name={post.seller.name} size={48} />
+            <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={48} />
           </View>
           <View style={styles.sellerDetails}>
             <Text style={styles.sellerName}>

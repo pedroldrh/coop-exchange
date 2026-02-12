@@ -16,6 +16,7 @@ import { usePosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
 import { Loading } from '../../components/ui/Loading';
+import { useAvatarGeneration } from '../../hooks/use-avatar-generation';
 import { showAlert } from '../../lib/utils';
 import type { Post, Profile } from '../../types/database';
 
@@ -37,6 +38,7 @@ const SWIPE_OPTIONS = [1, 2, 3, 4, 5];
 export function FeedScreen({ navigation }: Props) {
   const { user, profile } = useAuth();
   const { data: posts, isLoading, refetch, isRefetching } = usePosts();
+  useAvatarGeneration();
   const createPost = useCreatePost();
   const [showSwipeModal, setShowSwipeModal] = useState(false);
   const fabExpanded = useRef(false);

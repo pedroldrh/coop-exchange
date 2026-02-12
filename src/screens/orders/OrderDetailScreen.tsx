@@ -343,7 +343,7 @@ export function OrderDetailScreen({ route }: Props) {
         <Card style={styles.headerCard}>
           <View style={styles.headerRow}>
             <View style={styles.headerParty}>
-              <Avatar name={request.buyer.name} size={44} />
+              <Avatar name={request.buyer.name} avatarUrl={request.buyer.avatar_url} size={44} />
               <Text style={styles.headerPartyLabel}>Requester</Text>
               <Text style={styles.headerPartyName}>
                 {request.buyer.name ?? 'Anonymous'}
@@ -351,7 +351,7 @@ export function OrderDetailScreen({ route }: Props) {
             </View>
             <View style={styles.headerDivider} />
             <View style={styles.headerParty}>
-              <Avatar name={request.seller.name} size={44} />
+              <Avatar name={request.seller.name} avatarUrl={request.seller.avatar_url} size={44} />
               <Text style={styles.headerPartyLabel}>Sharer</Text>
               <Text style={styles.headerPartyName}>
                 {request.seller.name ?? 'Anonymous'}

@@ -42,7 +42,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
     <Card onPress={onPress} style={styles.card}>
       {/* Header: seller info + time */}
       <View style={styles.header}>
-        <Avatar name={post.seller.name} size={36} />
+        <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={36} />
         <View style={styles.sellerInfo}>
           <View style={styles.nameRow}>
             <Text style={styles.sellerName}>
