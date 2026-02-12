@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   FlatList,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   RefreshControl,
   Modal,
+  Animated,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
@@ -38,6 +39,41 @@ export function FeedScreen({ navigation }: Props) {
   const { data: posts, isLoading, refetch, isRefetching } = usePosts();
   const createPost = useCreatePost();
   const [showSwipeModal, setShowSwipeModal] = useState(false);
+  const [fabExpanded, setFabExpanded] = useState(false);
+  const fabWidth = useRef(new Animated.Value(56)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
+
+  const expandFab = useCallback(() => {
+    setFabExpanded(true);
+    Animated.parallel([
+      Animated.spring(fabWidth, {
+        toValue: 200,
+        useNativeDriver: false,
+        friction: 8,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: 1,
+        duration: 200,
+        delay: 100,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [fabWidth, textOpacity]);
+
+  const collapseFab = useCallback(() => {
+    Animated.parallel([
+      Animated.spring(fabWidth, {
+        toValue: 56,
+        useNativeDriver: false,
+        friction: 8,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: 0,
+        duration: 100,
+        useNativeDriver: false,
+      }),
+    ]).start(() => setFabExpanded(false));
+  }, [fabWidth, textOpacity]);
 
   const handlePostPress = useCallback(
     (post: PostWithSeller) => {
@@ -118,13 +154,25 @@ export function FeedScreen({ navigation }: Props) {
 
       {user && (
         <Pressable
-          style={({ pressed }) => [
-            styles.fab,
-            pressed && styles.fabPressed,
-          ]}
-          onPress={() => setShowSwipeModal(true)}
+          onPressIn={expandFab}
+          onPressOut={() => {
+            if (fabExpanded) {
+              collapseFab();
+              setShowSwipeModal(true);
+            }
+          }}
+          onPress={() => {
+            if (!fabExpanded) {
+              setShowSwipeModal(true);
+            }
+          }}
         >
-          <Text style={styles.fabText}>+</Text>
+          <Animated.View style={[styles.fab, { width: fabWidth }]}>
+            <Text style={styles.fabIcon}>+</Text>
+            <Animated.Text style={[styles.fabLabel, { opacity: textOpacity }]}>
+              Give out swipes!
+            </Animated.Text>
+          </Animated.View>
         </Pressable>
       )}
 
@@ -200,12 +248,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 24,
     right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: colors.primary,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 16,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -213,15 +262,17 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-  fabPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.95 }],
-  },
-  fabText: {
-    fontSize: 28,
+  fabIcon: {
+    fontSize: 26,
     color: colors.white,
-    fontWeight: '300',
-    lineHeight: 30,
+    fontWeight: '400',
+    lineHeight: 28,
+  },
+  fabLabel: {
+    fontSize: 16,
+    color: colors.white,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   // Modal styles
   modalBackdrop: {
