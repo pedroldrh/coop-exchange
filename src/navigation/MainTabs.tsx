@@ -38,7 +38,7 @@ export function MainTabs() {
         options={{
           tabBarLabel: 'Feed',
           tabBarIcon: ({ color }) => (
-            <Text style={[styles.tabIcon, { color }]}>&#9776;</Text>
+            <Text style={[styles.tabIcon, { color }]}>🍔</Text>
           ),
         }}
       />
@@ -48,7 +48,7 @@ export function MainTabs() {
         options={{
           tabBarLabel: 'History',
           tabBarIcon: ({ color }) => (
-            <Text style={[styles.tabIcon, { color }]}>&#9993;</Text>
+            <Text style={[styles.tabIcon, { color }]}>📋</Text>
           ),
         }}
       />
@@ -58,7 +58,7 @@ export function MainTabs() {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color }) => (
-            <Text style={[styles.tabIcon, { color }]}>&#9823;</Text>
+            <Text style={[styles.tabIcon, { color }]}>👤</Text>
           ),
         }}
       />
