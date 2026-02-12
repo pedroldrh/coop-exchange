@@ -62,13 +62,6 @@ export default async function handler(req: any, res: any) {
     // 2. Upload to Supabase Storage using the JS client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-    // Ensure the avatars bucket exists (public so URLs work)
-    const { error: bucketError } = await supabase.storage.createBucket('avatars', { public: true });
-    // Ignore "already exists" error
-    if (bucketError && !bucketError.message.includes('already exists')) {
-      return res.status(500).json({ error: 'Bucket creation failed', details: bucketError.message });
-    }
-
     // Convert Buffer to Uint8Array for compatibility
     const uint8 = new Uint8Array(buffer);
 
