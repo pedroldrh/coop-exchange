@@ -25,7 +25,6 @@ export interface Database {
           completed_count: number;
           cancel_count: number;
           avatar_url: string | null;
-          push_token: string | null;
           is_banned: boolean;
           created_at: string;
           updated_at: string;
@@ -39,7 +38,6 @@ export interface Database {
           completed_count?: number;
           cancel_count?: number;
           avatar_url?: string | null;
-          push_token?: string | null;
           is_banned?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -53,7 +51,6 @@ export interface Database {
           completed_count?: number;
           cancel_count?: number;
           avatar_url?: string | null;
-          push_token?: string | null;
           is_banned?: boolean;
           created_at?: string;
           updated_at?: string;

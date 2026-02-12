@@ -109,15 +109,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    // Clear push token before signing out so stale tokens don't linger
-    const { data: { session: current } } = await supabase.auth.getSession();
-    if (current?.user?.id) {
-      await supabase
-        .from('profiles')
-        .update({ push_token: null })
-        .eq('id', current.user.id);
-    }
-
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setSession(null);

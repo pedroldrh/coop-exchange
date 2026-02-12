@@ -1,6 +1,6 @@
 /**
  * Vercel serverless function — receives Supabase Database Webhook
- * on `requests` INSERT/UPDATE and sends Expo push notifications.
+ * on `requests` INSERT/UPDATE and sends email notifications via Resend.
  */
 
 interface WebhookPayload {
@@ -33,9 +33,14 @@ export default async function handler(req: any, res: any) {
 
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(500).json({ error: 'Missing server configuration' });
+  }
+
+  if (!RESEND_API_KEY) {
+    return res.status(500).json({ error: 'Missing RESEND_API_KEY' });
   }
 
   const payload: WebhookPayload = req.body;
@@ -43,16 +48,15 @@ export default async function handler(req: any, res: any) {
     return res.status(200).json({ skipped: true, reason: 'Not a requests event' });
   }
 
-  const record = payload.record;
   const notification = getNotification(payload);
   if (!notification) {
     return res.status(200).json({ skipped: true, reason: 'No notification for this event' });
   }
 
   try {
-    // Look up recipient's push_token
+    // Look up recipient's email
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}&select=push_token`,
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}&select=email,name`,
       {
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -66,46 +70,36 @@ export default async function handler(req: any, res: any) {
     }
 
     const profiles = await profileRes.json();
-    const pushToken = profiles[0]?.push_token;
+    const recipientEmail = profiles[0]?.email;
 
-    if (!pushToken) {
-      return res.status(200).json({ skipped: true, reason: 'No push token registered' });
+    if (!recipientEmail) {
+      return res.status(200).json({ skipped: true, reason: 'No email found for recipient' });
     }
 
-    // Send via Expo Push API
-    const pushRes = await fetch('https://exp.host/--/api/v2/push/send', {
+    const recipientName = profiles[0]?.name ?? 'there';
+
+    // Send via Resend API
+    const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+      },
       body: JSON.stringify({
-        to: pushToken,
-        sound: 'default',
-        title: notification.title,
-        body: notification.body,
-        data: { requestId: record.id },
+        from: 'Coop Exchange <notifications@coopexchange.app>',
+        to: [recipientEmail],
+        subject: notification.title,
+        html: `<p>Hi ${recipientName},</p><p>${notification.body}</p><p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>`,
       }),
     });
 
-    const pushData = await pushRes.json();
+    const emailData = await emailRes.json();
 
-    // Handle stale tokens — clear DeviceNotRegistered
-    if (pushData.data?.status === 'error' && pushData.data?.details?.error === 'DeviceNotRegistered') {
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal',
-          },
-          body: JSON.stringify({ push_token: null }),
-        },
-      );
-      return res.status(200).json({ cleared: true, reason: 'DeviceNotRegistered' });
+    if (!emailRes.ok) {
+      return res.status(500).json({ error: 'Failed to send email', details: emailData });
     }
 
-    return res.status(200).json({ sent: true, ticket: pushData });
+    return res.status(200).json({ sent: true, id: emailData.id });
   } catch (err: any) {
     return res.status(500).json({ error: err.message ?? 'Unknown error' });
   }
