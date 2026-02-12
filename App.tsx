@@ -55,8 +55,14 @@ const setupStyles = StyleSheet.create({
 export default function App() {
   useEffect(() => {
     if (Platform.OS === 'web') {
-      document.documentElement.style.overflowX = 'hidden';
-      document.body.style.overflowX = 'hidden';
+      const style = document.createElement('style');
+      style.textContent = `
+        html, body, #root {
+          overflow-x: hidden !important;
+          max-width: 100vw !important;
+        }
+      `;
+      document.head.appendChild(style);
     }
   }, []);
 

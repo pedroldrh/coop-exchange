@@ -90,6 +90,7 @@ export function Leaderboard() {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
+    overflow: 'hidden',
   },
   tickerBar: {
     flexDirection: 'row',
