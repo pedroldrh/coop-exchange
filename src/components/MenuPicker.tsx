@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
 } from 'react-native';
 import { CAFE_77_MENU, type MenuItem } from '../lib/menu';
@@ -142,12 +141,7 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
   return (
     <View style={styles.container}>
       {/* Category tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsContainer}
-        style={styles.tabsScroll}
-      >
+      <View style={styles.tabsContainer}>
         {CAFE_77_MENU.map((cat) => (
           <Pressable
             key={cat.name}
@@ -167,7 +161,7 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
 
       {/* Items list */}
       <FlatList
@@ -211,16 +205,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabsScroll: {
-    flexGrow: 0,
-  },
   tabsContainer: {
     paddingHorizontal: 4,
     paddingVertical: 8,
-    gap: 8,
+    gap: 6,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   tab: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: colors.gray100,
