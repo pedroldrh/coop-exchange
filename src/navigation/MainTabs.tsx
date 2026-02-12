@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { useOrderNotifications } from '../hooks/use-order-notifications';
+import { usePushTokenRegistration } from '../hooks/use-push-token';
 import { FeedStack } from './FeedStack';
 import { OrdersStack } from './OrdersStack';
 import { ProfileStack } from './ProfileStack';
@@ -21,6 +22,7 @@ const GRAY400 = '#9CA3AF';
 export function MainTabs() {
   const { isAdmin } = useAuth();
   useOrderNotifications();
+  usePushTokenRegistration();
 
   return (
     <Tab.Navigator
