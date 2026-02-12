@@ -38,15 +38,30 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
   const isDisputed = currentStatus === 'disputed';
   const isTerminal = isCancelled || isDisputed;
 
-  // Find the index of the current status in the normal flow
   const currentIndex = STATUS_FLOW.indexOf(currentStatus as RequestStatus);
-  // If the status is terminal, figure out where in the flow it broke off
-  // by showing all steps up to wherever it was before the terminal state
   const activeIndex = isTerminal ? -1 : currentIndex;
 
   return (
     <View style={styles.container}>
-      <View style={styles.timeline}>
+      {/* Line track — one continuous row behind the dots */}
+      <View style={styles.trackRow}>
+        {STATUS_FLOW.map((status, index) => {
+          if (index === 0) return null;
+          const filled = !isTerminal && activeIndex >= index;
+          return (
+            <View
+              key={`line-${index}`}
+              style={[
+                styles.segment,
+                { backgroundColor: filled ? STATUS_COLORS[STATUS_FLOW[index - 1]] : colors.gray300 },
+              ]}
+            />
+          );
+        })}
+      </View>
+
+      {/* Dots and labels on top */}
+      <View style={styles.dotsRow}>
         {STATUS_FLOW.map((status, index) => {
           const isCompleted = !isTerminal && activeIndex > index;
           const isCurrent = !isTerminal && activeIndex === index;
@@ -56,39 +71,16 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
             ? STATUS_COLORS[status]
             : colors.gray300;
 
-          const lineColor =
-            index < STATUS_FLOW.length - 1
-              ? isCompleted
-                ? STATUS_COLORS[status]
-                : colors.gray300
-              : 'transparent';
-
-          const prevCompleted = index > 0 && !isTerminal && activeIndex >= index;
-          const prevLineColor = prevCompleted
-            ? STATUS_COLORS[STATUS_FLOW[index - 1]]
-            : colors.gray300;
-
           return (
             <View key={status} style={styles.step}>
-              <View style={styles.dotRow}>
-                {/* Line before dot (not before first) */}
-                {index > 0 && (
-                  <View style={[styles.line, { backgroundColor: prevLineColor }]} />
-                )}
-                {/* Dot */}
-                <View
-                  style={[
-                    styles.dot,
-                    { backgroundColor: dotColor },
-                    isCurrent && styles.currentDot,
-                    isCurrent && { borderColor: dotColor },
-                  ]}
-                />
-                {/* Line after dot (not after last) */}
-                {index < STATUS_FLOW.length - 1 && (
-                  <View style={[styles.line, { backgroundColor: lineColor }]} />
-                )}
-              </View>
+              <View
+                style={[
+                  styles.dot,
+                  { backgroundColor: dotColor },
+                  isCurrent && styles.currentDot,
+                  isCurrent && { borderColor: dotColor },
+                ]}
+              />
               <Text
                 style={[
                   styles.label,
@@ -102,73 +94,66 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
             </View>
           );
         })}
-
-        {/* Terminal status dot (cancelled / disputed) */}
-        {isTerminal && (
-          <View style={styles.step}>
-            <View style={styles.dotRow}>
-              <View
-                style={[
-                  styles.dot,
-                  styles.currentDot,
-                  {
-                    backgroundColor: STATUS_COLORS[currentStatus],
-                    borderColor: STATUS_COLORS[currentStatus],
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[styles.label, styles.terminalLabel]}>
-              {STATUS_LABELS[currentStatus as RequestStatus]}
-            </Text>
-          </View>
-        )}
       </View>
+
+      {isTerminal && (
+        <Text style={styles.terminalLabel}>
+          {STATUS_LABELS[currentStatus as RequestStatus]}
+        </Text>
+      )}
     </View>
   );
 }
 
+const DOT_SIZE = 16;
+const CURRENT_DOT_SIZE = 20;
+const DOT_TOP = 0;
+
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 12,
-    paddingHorizontal: 0,
+    position: 'relative',
   },
-  timeline: {
+  trackRow: {
+    position: 'absolute',
+    top: DOT_TOP + DOT_SIZE / 2 - 1.5,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    height: 3,
+    paddingHorizontal: '10%',
+  },
+  segment: {
+    flex: 1,
+    height: 3,
+    borderRadius: 1.5,
+  },
+  dotsRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
   },
   step: {
-    flex: 1,
     alignItems: 'center',
-  },
-  dotRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    justifyContent: 'center',
+    width: 60,
   },
   dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: DOT_SIZE,
+    height: DOT_SIZE,
+    borderRadius: DOT_SIZE / 2,
+    backgroundColor: colors.gray300,
   },
   currentDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: CURRENT_DOT_SIZE,
+    height: CURRENT_DOT_SIZE,
+    borderRadius: CURRENT_DOT_SIZE / 2,
     borderWidth: 3,
     borderColor: colors.white,
+    marginTop: -(CURRENT_DOT_SIZE - DOT_SIZE) / 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 3,
-  },
-  line: {
-    height: 3,
-    flex: 1,
-    borderRadius: 1.5,
   },
   label: {
     fontSize: 11,
@@ -186,5 +171,8 @@ const styles = StyleSheet.create({
   terminalLabel: {
     color: '#EF4444',
     fontWeight: '700',
+    textAlign: 'center',
+    marginTop: 8,
+    fontSize: 12,
   },
 });
