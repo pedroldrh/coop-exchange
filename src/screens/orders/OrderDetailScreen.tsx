@@ -347,9 +347,7 @@ export function OrderDetailScreen({ route }: Props) {
                 {request.buyer.name ?? 'Anonymous'}
               </Text>
             </View>
-            <View style={styles.headerDivider}>
-              <Text style={styles.headerArrow}>{'<>'}</Text>
-            </View>
+            <View style={styles.headerDivider} />
             <View style={styles.headerParty}>
               <Text style={styles.headerPartyLabel}>Sharer</Text>
               <Text style={styles.headerPartyName}>
@@ -605,12 +603,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerDivider: {
-    paddingHorizontal: 8,
-  },
-  headerArrow: {
-    fontSize: 16,
-    color: colors.gray300,
-    fontWeight: '600',
+    width: 12,
   },
   roleRow: {
     flexDirection: 'row',
