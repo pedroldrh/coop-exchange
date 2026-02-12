@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
-  Pressable,
   StyleSheet,
   RefreshControl,
 } from 'react-native';
@@ -22,36 +21,18 @@ type RequestWithDetails = Request & {
 };
 
 type Props = NativeStackScreenProps<OrdersStackParamList, 'OrdersList'>;
-type TabKey = 'buyer' | 'seller';
 
 const colors = {
   primary: '#4F46E5',
-  primaryLight: '#818CF8',
   gray50: '#F9FAFB',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
   gray400: '#9CA3AF',
   gray500: '#6B7280',
   gray900: '#111827',
-  white: '#FFFFFF',
 };
 
 export function OrdersListScreen({ navigation }: Props) {
   const { user } = useAuth();
   const { data: requests, isLoading, refetch, isRefetching } = useMyRequests();
-  const [activeTab, setActiveTab] = useState<TabKey>('buyer');
-
-  const buyerRequests = useMemo(
-    () => requests?.filter((r) => r.buyer_id === user?.id) ?? [],
-    [requests, user?.id],
-  );
-
-  const sellerRequests = useMemo(
-    () => requests?.filter((r) => r.seller_id === user?.id) ?? [],
-    [requests, user?.id],
-  );
-
-  const activeRequests = activeTab === 'buyer' ? buyerRequests : sellerRequests;
 
   const handleRequestPress = useCallback(
     (requestId: string) => {
@@ -73,19 +54,16 @@ export function OrdersListScreen({ navigation }: Props) {
 
   const renderEmpty = useCallback(() => {
     if (isLoading) return null;
-    const message =
-      activeTab === 'buyer'
-        ? 'No orders as a buyer yet.\nBrowse the feed to request an order!'
-        : 'No orders as a seller yet.\nCreate a post to start receiving requests!';
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>
-          {activeTab === 'buyer' ? '🛒' : '📋'}
+        <Text style={styles.emptyIcon}>📋</Text>
+        <Text style={styles.emptyTitle}>No orders yet</Text>
+        <Text style={styles.emptySubtitle}>
+          Share swipes or request food to see your history here
         </Text>
-        <Text style={styles.emptyText}>{message}</Text>
       </View>
     );
-  }, [isLoading, activeTab]);
+  }, [isLoading]);
 
   const keyExtractor = useCallback(
     (item: RequestWithDetails) => item.id,
@@ -98,39 +76,8 @@ export function OrdersListScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      {/* Tab Switcher */}
-      <View style={styles.tabBar}>
-        <Pressable
-          style={[styles.tab, activeTab === 'buyer' && styles.tabActive]}
-          onPress={() => setActiveTab('buyer')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'buyer' && styles.tabTextActive,
-            ]}
-          >
-            As Buyer ({buyerRequests.length})
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tab, activeTab === 'seller' && styles.tabActive]}
-          onPress={() => setActiveTab('seller')}
-        >
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === 'seller' && styles.tabTextActive,
-            ]}
-          >
-            As Seller ({sellerRequests.length})
-          </Text>
-        </Pressable>
-      </View>
-
-      {/* Request List */}
       <FlatList
-        data={activeRequests}
+        data={requests}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         contentContainerStyle={styles.listContent}
@@ -153,33 +100,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.gray50,
   },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: colors.white,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabActive: {
-    borderBottomColor: colors.primary,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray400,
-  },
-  tabTextActive: {
-    color: colors.primary,
-    fontWeight: '600',
-  },
   listContent: {
     padding: 16,
     flexGrow: 1,
@@ -194,10 +114,15 @@ const styles = StyleSheet.create({
     fontSize: 48,
     marginBottom: 16,
   },
-  emptyText: {
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.gray900,
+    marginBottom: 4,
+  },
+  emptySubtitle: {
     fontSize: 14,
     color: colors.gray500,
     textAlign: 'center',
-    lineHeight: 22,
   },
 });

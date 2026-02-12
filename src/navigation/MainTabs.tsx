@@ -46,7 +46,7 @@ export function MainTabs() {
         name="OrdersTab"
         component={OrdersStack}
         options={{
-          tabBarLabel: 'My Requests',
+          tabBarLabel: 'History',
           tabBarIcon: ({ color }) => (
             <Text style={[styles.tabIcon, { color }]}>&#9993;</Text>
           ),

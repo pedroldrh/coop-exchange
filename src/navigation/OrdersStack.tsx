@@ -17,7 +17,7 @@ export function OrdersStack() {
       <Stack.Screen
         name="OrdersList"
         component={OrdersListScreen}
-        options={{ title: 'My Orders' }}
+        options={{ title: 'History' }}
       />
       <Stack.Screen
         name="OrderDetail"
