@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/providers/AuthProvider';
@@ -53,6 +53,13 @@ const setupStyles = StyleSheet.create({
 });
 
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      document.documentElement.style.overflowX = 'hidden';
+      document.body.style.overflowX = 'hidden';
+    }
+  }, []);
+
   if (!supabaseConfigured) {
     return (
       <SafeAreaProvider>
