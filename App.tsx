@@ -59,16 +59,28 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const style = document.createElement('style');
     style.id = id;
     style.textContent = `
-      html, body, #root {
+      html {
         overflow: hidden !important;
-        height: 100% !important;
+        overscroll-behavior: none !important;
+      }
+      body {
+        overflow: hidden !important;
+        overscroll-behavior: none !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
         width: 100% !important;
-        max-width: 100vw !important;
+        height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
+        touch-action: pan-y !important;
       }
-      #root > div {
+      #root, #root > div, #root > div > div {
         overflow: hidden !important;
+        width: 100% !important;
+        height: 100% !important;
         max-width: 100vw !important;
       }
     `;
