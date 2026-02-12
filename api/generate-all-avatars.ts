@@ -39,7 +39,7 @@ export default async function handler(req: any, res: any) {
     const words = nicknameToWords(nickname);
 
     // 2. Generate image with DALL-E 3
-    const prompt = `A stylized humanlike character avatar inspired by the name "${words}". The character should visually represent the name — for example if the name includes a food item, the person could be holding or wearing it. No text or letters anywhere in the image. Friendly expressive face, vibrant colors, solid simple background, digital art, profile picture style.`;
+    const prompt = `Create a premium 3D-rendered character portrait inspired by the nickname "${words}". The character is a stylish, expressive human with exaggerated features like a Pixar or Fortnite skin. They should creatively embody the name — for example "FireDorito" would be a cool character with flame-styled hair holding a glowing Dorito chip, "IceCreamQueen" would be a regal character with an ice cream cone crown. Bold dynamic lighting, rich saturated colors, smooth gradient background, cinematic quality. Absolutely NO text, letters, or words anywhere. Square crop, centered face, profile picture composition.`;
 
     const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
