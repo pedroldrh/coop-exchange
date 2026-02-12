@@ -1,99 +1,83 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Animated, StyleSheet, LayoutChangeEvent } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
 import { useLeaderboard } from '../hooks/use-leaderboard';
 import { getTopBadge } from '../lib/badges';
 
 const colors = {
   primary: '#4F46E5',
-  primaryLight: '#EEF2FF',
   gray200: '#E5E7EB',
   gray400: '#9CA3AF',
-  gray500: '#6B7280',
   gray800: '#1F2937',
   gray900: '#111827',
   white: '#FFFFFF',
 };
 
+const ITEM_WIDTH = 160; // estimated width per ticker entry
 const SCROLL_SPEED = 40; // pixels per second
-const SEPARATOR = '    ·    ';
 
 export function Leaderboard() {
   const { data: leaders } = useLeaderboard(10);
-  const scrollX = useRef(new Animated.Value(0)).current;
-  const animRef = useRef<Animated.CompositeAnimation | null>(null);
-  const [contentWidth, setContentWidth] = useState(0);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const translateX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!contentWidth || !containerWidth || contentWidth <= containerWidth) return;
+    if (!leaders || leaders.length === 0) return;
 
-    // Start from right edge, scroll all the way left until content is off screen
-    const totalDistance = contentWidth + containerWidth;
-    const duration = (totalDistance / SCROLL_SPEED) * 1000;
+    const contentWidth = leaders.length * ITEM_WIDTH;
+    const totalTravel = contentWidth;
+    const duration = (totalTravel / SCROLL_SPEED) * 1000;
 
-    const startAnimation = () => {
-      scrollX.setValue(containerWidth);
-      animRef.current = Animated.timing(scrollX, {
+    const animation = Animated.loop(
+      Animated.timing(translateX, {
         toValue: -contentWidth,
         duration,
+        easing: Easing.linear,
         useNativeDriver: true,
         isInteraction: false,
-      });
-      animRef.current.start(({ finished }) => {
-        if (finished) startAnimation();
-      });
-    };
+      }),
+    );
 
-    startAnimation();
+    translateX.setValue(0);
+    animation.start();
 
     return () => {
-      animRef.current?.stop();
+      animation.stop();
     };
-  }, [contentWidth, containerWidth, scrollX]);
+  }, [leaders, translateX]);
 
   if (!leaders || leaders.length === 0) return null;
 
-  const handleContainerLayout = (e: LayoutChangeEvent) => {
-    setContainerWidth(e.nativeEvent.layout.width);
-  };
-
-  const handleContentLayout = (e: LayoutChangeEvent) => {
-    setContentWidth(e.nativeEvent.layout.width);
-  };
+  // Triple the list so there's always content visible during the loop
+  const items = [...leaders, ...leaders, ...leaders];
 
   return (
     <View style={styles.container}>
-      <View style={styles.tickerBar} onLayout={handleContainerLayout}>
+      <View style={styles.tickerBar}>
         <View style={styles.labelBox}>
-          <Text style={styles.labelText}>TOP SWIPERS</Text>
+          <Text style={styles.labelText}>TOP{'\n'}SWIPERS</Text>
         </View>
         <View style={styles.tickerMask}>
           <Animated.View
             style={[
               styles.tickerTrack,
-              { transform: [{ translateX: scrollX }] },
+              { transform: [{ translateX }] },
             ]}
-            onLayout={handleContentLayout}
           >
-            {leaders.map((profile, index) => {
+            {items.map((profile, index) => {
+              const rank = index % leaders.length;
               const topBadge = getTopBadge(profile.completed_count);
               const firstName = profile.name?.split(' ')[0] ?? 'Anon';
               const lastInitial = profile.name?.split(' ')[1]?.[0] ?? '';
 
               return (
-                <Text key={profile.id} style={styles.tickerItem}>
-                  {index > 0 ? SEPARATOR : ''}
-                  <Text style={styles.tickerRank}>#{index + 1} </Text>
-                  {topBadge && (
-                    <Text>{topBadge.icon} </Text>
-                  )}
+                <View key={`${profile.id}-${index}`} style={styles.tickerEntry}>
+                  <Text style={styles.tickerRank}>#{rank + 1}</Text>
+                  {topBadge && <Text style={styles.tickerBadge}>{topBadge.icon}</Text>}
                   <Text style={styles.tickerName}>
                     {firstName}{lastInitial ? ` ${lastInitial}.` : ''}
                   </Text>
-                  <Text style={styles.tickerCount}>
-                    {' '}{profile.completed_count}
-                  </Text>
-                </Text>
+                  <Text style={styles.tickerCount}>{profile.completed_count}</Text>
+                  {index < items.length - 1 && <Text style={styles.tickerDot}>  ·  </Text>}
+                </View>
               );
             })}
           </Animated.View>
@@ -115,20 +99,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray200,
     overflow: 'hidden',
-    height: 38,
+    height: 40,
   },
   labelBox: {
     backgroundColor: colors.primary,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     height: '100%',
     justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
   labelText: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     color: colors.white,
     letterSpacing: 0.5,
+    textAlign: 'center',
+    lineHeight: 12,
   },
   tickerMask: {
     flex: 1,
@@ -139,23 +126,34 @@ const styles = StyleSheet.create({
   tickerTrack: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
   },
-  tickerItem: {
-    fontSize: 14,
-    color: colors.gray800,
+  tickerEntry: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   tickerRank: {
+    fontSize: 13,
     fontWeight: '700',
     color: colors.primary,
+    marginRight: 3,
+  },
+  tickerBadge: {
+    fontSize: 13,
+    marginRight: 3,
   },
   tickerName: {
+    fontSize: 14,
     fontWeight: '600',
     color: colors.gray900,
+    marginRight: 4,
   },
   tickerCount: {
+    fontSize: 13,
     fontWeight: '500',
     color: colors.gray400,
-    fontSize: 13,
+  },
+  tickerDot: {
+    fontSize: 14,
+    color: colors.gray400,
   },
 });
