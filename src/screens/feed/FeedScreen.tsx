@@ -254,10 +254,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   fabIcon: {
-    fontSize: 26,
-    color: colors.white,
-    fontWeight: '400',
-    lineHeight: 28,
+    fontSize: 24,
+    textAlign: 'center',
+    paddingLeft: 4,
   },
   fabLabel: {
     fontSize: 16,
