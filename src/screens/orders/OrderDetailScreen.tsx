@@ -404,7 +404,7 @@ export function OrderDetailScreen({ route }: Props) {
           </Card>
         )}
 
-        {/* Mobile Order Link — shown to freshman after accepting */}
+        {/* Mobile Order Link — shown to sharer after accepting */}
         {request.status === 'accepted' && isSeller && (
           <Card style={styles.sectionCard}>
             <Pressable
@@ -412,15 +412,18 @@ export function OrderDetailScreen({ route }: Props) {
                 styles.mobileOrderButton,
                 pressed && styles.mobileOrderButtonPressed,
               ]}
-              onPress={() =>
-                Linking.openURL('https://my.wlu.edu/dining-services')
-              }
+              onPress={async () => {
+                const appUrl = Platform.OS === 'ios'
+                  ? 'https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529'
+                  : 'https://play.google.com/store/apps/details?id=com.blackboard.mobileorder';
+                await Linking.openURL(appUrl);
+              }}
             >
               <Text style={styles.mobileOrderButtonText}>
-                Open Mobile Order
+                Open Transact Mobile Ordering
               </Text>
               <Text style={styles.mobileOrderHint}>
-                Opens W&L Dining Services
+                Order food for this request
               </Text>
             </Pressable>
           </Card>
