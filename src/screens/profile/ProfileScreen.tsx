@@ -63,7 +63,7 @@ export function ProfileScreen({ navigation }: Props) {
         queryClient.invalidateQueries({ queryKey: ['profile'] });
         showAlert('Avatar Generated', 'Your new avatar is ready!');
       } else {
-        showAlert('Error', data.error ?? 'Failed to generate avatar');
+        showAlert('Error', `${data.error}\n\nStatus: ${data.status ?? 'n/a'}\nDetails: ${data.details ?? 'none'}`);
       }
     } catch (err: any) {
       showAlert('Error', err?.message ?? 'Failed to generate avatar');

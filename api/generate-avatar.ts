@@ -61,6 +61,7 @@ export default async function handler(req: any, res: any) {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY,
         'Content-Type': 'image/png',
         'x-upsert': 'true',
       },
