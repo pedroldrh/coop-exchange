@@ -11,7 +11,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
 import { usePost } from '../../hooks/use-posts';
-import { useRequestsByPost } from '../../hooks/use-requests';
+import { useRequestsByPost, useHasShared } from '../../hooks/use-requests';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -43,9 +43,11 @@ export function PostDetailScreen({ route, navigation }: Props) {
 
   const { data: post, isLoading, refetch, isRefetching } = usePost(postId);
   const { data: requests } = useRequestsByPost(postId);
+  const { data: hasShared, isLoading: sharingLoading } = useHasShared();
 
   const isOwner = user?.id === post?.seller_id;
   const isFull = post?.capacity_remaining === 0;
+  const canRequest = hasShared === true;
 
   const handleRequestOrder = useCallback(() => {
     if (!post) return;
@@ -142,12 +144,23 @@ export function PostDetailScreen({ route, navigation }: Props) {
       {!isOwner && (
         <View style={styles.actionSection}>
           <Button
-            title={isFull ? 'No Swipes Available' : 'Request Food'}
+            title={
+              isFull
+                ? 'No Swipes Available'
+                : !canRequest
+                ? 'Share a swipe first to request food'
+                : 'Request Food'
+            }
             onPress={handleRequestOrder}
-            disabled={isFull}
+            disabled={isFull || !canRequest || sharingLoading}
             fullWidth
             size="lg"
           />
+          {!canRequest && !sharingLoading && (
+            <Text style={styles.gateHint}>
+              You must successfully share at least 1 meal before you can request food.
+            </Text>
+          )}
         </View>
       )}
 
@@ -269,6 +282,13 @@ const styles = StyleSheet.create({
   },
   actionSection: {
     marginBottom: 16,
+  },
+  gateHint: {
+    fontSize: 13,
+    color: colors.gray500,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 18,
   },
   requestsSection: {
     marginTop: 8,

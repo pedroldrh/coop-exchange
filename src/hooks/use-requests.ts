@@ -73,6 +73,25 @@ export function useRequestsByPost(postId: string) {
   });
 }
 
+export function useHasShared() {
+  const { user } = useAuth();
+
+  return useQuery<boolean>({
+    queryKey: ['has-shared', user?.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('seller_id', user!.id)
+        .eq('status', 'completed');
+
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+    enabled: !!user,
+  });
+}
+
 export function useCreateRequest() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
