@@ -60,14 +60,13 @@ export default async function handler(req: any, res: any) {
     const buffer = Buffer.from(b64, 'base64');
 
     // 2. Upload to Supabase Storage using the JS client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-    // Convert Buffer to Uint8Array for compatibility
-    const uint8 = new Uint8Array(buffer);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(`${userId}.png`, uint8, {
+      .upload(`${userId}.png`, buffer, {
         contentType: 'image/png',
         upsert: true,
       });
