@@ -5,7 +5,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -22,7 +21,6 @@ import { showAlert } from '../../lib/utils';
 
 const editProfileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  role_preference: z.enum(['buyer', 'seller']),
 });
 
 type FormValues = z.infer<typeof editProfileSchema>;
@@ -43,11 +41,6 @@ const colors = {
   white: '#FFFFFF',
 };
 
-const roleOptions: { label: string; value: 'buyer' | 'seller' }[] = [
-  { label: 'Upperclassman', value: 'buyer' },
-  { label: 'Freshman', value: 'seller' },
-];
-
 export function EditProfileScreen({ navigation }: Props) {
   const { refreshProfile } = useAuth();
   const { data: profile, isLoading } = useProfile();
@@ -61,7 +54,6 @@ export function EditProfileScreen({ navigation }: Props) {
   } = useForm<FormValues>({
     defaultValues: {
       name: '',
-      role_preference: 'buyer',
     },
     resolver: zodResolver(editProfileSchema) as any,
   });
@@ -71,10 +63,6 @@ export function EditProfileScreen({ navigation }: Props) {
     if (profile) {
       reset({
         name: profile.name ?? '',
-        role_preference:
-          profile.role_preference === 'admin'
-            ? 'buyer'
-            : (profile.role_preference as 'buyer' | 'seller'),
       });
     }
   }, [profile, reset]);
@@ -83,7 +71,6 @@ export function EditProfileScreen({ navigation }: Props) {
     try {
       await updateProfile.mutateAsync({
         name: data.name,
-        role_preference: data.role_preference,
       });
       await refreshProfile();
       navigation.goBack();
@@ -125,45 +112,6 @@ export function EditProfileScreen({ navigation }: Props) {
             )}
           />
 
-          <Controller
-            control={control}
-            name="role_preference"
-            render={({ field: { onChange, value } }) => (
-              <View style={styles.fieldContainer}>
-                <Text style={styles.fieldLabel}>Role Preference</Text>
-                <View style={styles.roleSelector}>
-                  {roleOptions.map((option) => {
-                    const isSelected = value === option.value;
-                    return (
-                      <Pressable
-                        key={option.value}
-                        style={[
-                          styles.roleOption,
-                          isSelected && styles.roleOptionSelected,
-                        ]}
-                        onPress={() => onChange(option.value)}
-                      >
-                        <Text
-                          style={[
-                            styles.roleOptionText,
-                            isSelected && styles.roleOptionTextSelected,
-                          ]}
-                        >
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                {errors.role_preference && (
-                  <Text style={styles.errorText}>
-                    {errors.role_preference.message}
-                  </Text>
-                )}
-              </View>
-            )}
-          />
-
           <View style={styles.buttonContainer}>
             <Button
               title="Save Changes"
@@ -201,45 +149,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 0,
-  },
-  fieldContainer: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.gray700,
-    marginBottom: 6,
-  },
-  roleSelector: {
-    flexDirection: 'row',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.gray300,
-    overflow: 'hidden',
-  },
-  roleOption: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    backgroundColor: colors.white,
-  },
-  roleOptionSelected: {
-    backgroundColor: colors.primary,
-  },
-  roleOptionText: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: colors.gray700,
-  },
-  roleOptionTextSelected: {
-    color: colors.white,
-    fontWeight: '600',
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#EF4444',
-    marginTop: 4,
   },
   buttonContainer: {
     marginTop: 8,
