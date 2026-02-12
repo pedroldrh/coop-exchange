@@ -244,8 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 0,
+    paddingLeft: 16,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -262,8 +261,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 8,
     marginRight: 16,
-    position: 'absolute',
-    left: 50,
   },
   // Modal styles
   modalBackdrop: {

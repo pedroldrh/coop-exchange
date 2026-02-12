@@ -23,18 +23,18 @@ ON CONFLICT (id) DO NOTHING;
 -- ============================================================
 -- 2. Update profiles with names, ratings, completed counts
 -- ============================================================
-UPDATE profiles SET name = 'Jake Thompson',    venmo_handle = '@jakethompson',   rating_avg = 4.8, completed_count = 32, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000001';
-UPDATE profiles SET name = 'Maria Rodriguez',  venmo_handle = '@mariarodz',      rating_avg = 4.9, completed_count = 28, cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000002';
-UPDATE profiles SET name = 'Ethan Wilson',     venmo_handle = '@ethanw',         rating_avg = 4.6, completed_count = 21, cancel_count = 2 WHERE id = 'a0000001-0000-0000-0000-000000000003';
-UPDATE profiles SET name = 'Sarah Carroll',    venmo_handle = '@scarroll',       rating_avg = 4.7, completed_count = 18, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000004';
-UPDATE profiles SET name = 'Daniel Kim',       venmo_handle = '@dkim',           rating_avg = 5.0, completed_count = 15, cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000005';
-UPDATE profiles SET name = 'Ananya Patel',     venmo_handle = '@ananyap',        rating_avg = 4.5, completed_count = 12, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000006';
-UPDATE profiles SET name = 'James Nguyen',     venmo_handle = '@jamesnguyen',    rating_avg = 4.3, completed_count = 9,  cancel_count = 3 WHERE id = 'a0000001-0000-0000-0000-000000000007';
-UPDATE profiles SET name = 'Caroline Johnson', venmo_handle = '@carolinej',      rating_avg = 4.8, completed_count = 7,  cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000008';
-UPDATE profiles SET name = 'Lucas Brown',      venmo_handle = '@lucasbrown',     rating_avg = 4.4, completed_count = 5,  cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000009';
-UPDATE profiles SET name = 'Rosa Garcia',      venmo_handle = '@rosagarcia',     rating_avg = 4.1, completed_count = 3,  cancel_count = 2 WHERE id = 'a0000001-0000-0000-0000-000000000010';
-UPDATE profiles SET name = 'Kevin Lee',        venmo_handle = '@kevinlee',       rating_avg = 4.6, completed_count = 2,  cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000011';
-UPDATE profiles SET name = 'Taylor White',     venmo_handle = '@taylorw',        rating_avg = 3.9, completed_count = 1,  cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000012';
+UPDATE profiles SET name = 'SwipeMaster3000',    venmo_handle = '@jakethompson',   rating_avg = 4.8, completed_count = 32, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000001';
+UPDATE profiles SET name = 'BurritoQueen99',     venmo_handle = '@mariarodz',      rating_avg = 4.9, completed_count = 28, cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000002';
+UPDATE profiles SET name = 'HungryGeneral',      venmo_handle = '@ethanw',         rating_avg = 4.6, completed_count = 21, cancel_count = 2 WHERE id = 'a0000001-0000-0000-0000-000000000003';
+UPDATE profiles SET name = 'CafeCrusader',       venmo_handle = '@scarroll',       rating_avg = 4.7, completed_count = 18, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000004';
+UPDATE profiles SET name = 'TenderDefender',     venmo_handle = '@dkim',           rating_avg = 5.0, completed_count = 15, cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000005';
+UPDATE profiles SET name = 'NachoAverage',       venmo_handle = '@ananyap',        rating_avg = 4.5, completed_count = 12, cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000006';
+UPDATE profiles SET name = 'FryLord420',         venmo_handle = '@jamesnguyen',    rating_avg = 4.3, completed_count = 9,  cancel_count = 3 WHERE id = 'a0000001-0000-0000-0000-000000000007';
+UPDATE profiles SET name = 'GrillzNChillz',      venmo_handle = '@carolinej',      rating_avg = 4.8, completed_count = 7,  cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000008';
+UPDATE profiles SET name = 'QuesadillaKing',     venmo_handle = '@lucasbrown',     rating_avg = 4.4, completed_count = 5,  cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000009';
+UPDATE profiles SET name = 'SoupSurgeon',        venmo_handle = '@rosagarcia',     rating_avg = 4.1, completed_count = 3,  cancel_count = 2 WHERE id = 'a0000001-0000-0000-0000-000000000010';
+UPDATE profiles SET name = 'MealDealMaverick',   venmo_handle = '@kevinlee',       rating_avg = 4.6, completed_count = 2,  cancel_count = 0 WHERE id = 'a0000001-0000-0000-0000-000000000011';
+UPDATE profiles SET name = 'SnackAttack007',     venmo_handle = '@taylorw',        rating_avg = 3.9, completed_count = 1,  cancel_count = 1 WHERE id = 'a0000001-0000-0000-0000-000000000012';
 
 -- ============================================================
 -- 3. Create active posts (swipes available right now)
