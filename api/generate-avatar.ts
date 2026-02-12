@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 function nicknameToWords(nickname: string): string {
   return nickname
     .replace(/[0-9]+$/g, '')
@@ -23,11 +21,7 @@ export default async function handler(req: any, res: any) {
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!OPENAI_API_KEY || !SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    return res.status(500).json({ error: 'Missing server configuration', missing: {
-      openai: !OPENAI_API_KEY,
-      supabaseUrl: !SUPABASE_URL,
-      supabaseKey: !SUPABASE_SERVICE_KEY,
-    }});
+    return res.status(500).json({ error: 'Missing server configuration' });
   }
 
   try {
@@ -59,37 +53,43 @@ export default async function handler(req: any, res: any) {
     const b64 = openaiData.data[0].b64_json;
     const buffer = Buffer.from(b64, 'base64');
 
-    // 2. Upload to Supabase Storage using the JS client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-      auth: { autoRefreshToken: false, persistSession: false },
+    // 2. Upload to Supabase Storage via REST API directly
+    const filePath = `${userId}.png`;
+    const uploadUrl = `${SUPABASE_URL}/storage/v1/object/avatars/${filePath}`;
+
+    const uploadRes = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'image/png',
+        'x-upsert': 'true',
+      },
+      body: buffer,
     });
 
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(`${userId}.png`, buffer, {
-        contentType: 'image/png',
-        upsert: true,
-      });
-
-    if (uploadError) {
-      return res.status(500).json({ error: 'Storage upload failed', details: uploadError.message });
+    if (!uploadRes.ok) {
+      const uploadErr = await uploadRes.text();
+      return res.status(500).json({ error: 'Storage upload failed', status: uploadRes.status, details: uploadErr });
     }
 
-    // 3. Get public URL
-    const { data: urlData } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(`${userId}.png`);
+    // 3. Build public URL
+    const avatarUrl = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filePath}`;
 
-    const avatarUrl = urlData.publicUrl;
+    // 4. Update profile via REST API
+    const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({ avatar_url: avatarUrl }),
+    });
 
-    // 4. Update profile
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ avatar_url: avatarUrl })
-      .eq('id', userId);
-
-    if (updateError) {
-      return res.status(500).json({ error: 'Profile update failed', details: updateError.message });
+    if (!updateRes.ok) {
+      const updateErr = await updateRes.text();
+      return res.status(500).json({ error: 'Profile update failed', status: updateRes.status, details: updateErr });
     }
 
     return res.status(200).json({ avatar_url: avatarUrl });
