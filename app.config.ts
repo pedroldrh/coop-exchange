@@ -2,7 +2,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'coop-exchange',
+  name: 'Foodie - Eat for Free',
   slug: 'coop-exchange',
   version: '1.0.0',
   sdkVersion: '54.0.0',
