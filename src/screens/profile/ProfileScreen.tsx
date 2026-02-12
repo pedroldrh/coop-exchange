@@ -47,10 +47,6 @@ export function ProfileScreen({ navigation }: Props) {
   const displayPosts = myPosts?.slice(0, 5) ?? [];
   const hasMorePosts = (myPosts?.length ?? 0) > 5;
 
-  const handleEditProfile = useCallback(() => {
-    navigation.navigate('EditProfile');
-  }, [navigation]);
-
   const handleSignOut = useCallback(async () => {
     const confirmed = await showConfirm(
       'Sign Out',
@@ -148,13 +144,6 @@ export function ProfileScreen({ navigation }: Props) {
 
       {/* Action Buttons */}
       <View style={styles.actions}>
-        <Button
-          title="Edit Profile"
-          onPress={handleEditProfile}
-          variant="secondary"
-          fullWidth
-        />
-        <View style={styles.actionGap} />
         <Button
           title="Sign Out"
           onPress={handleSignOut}
