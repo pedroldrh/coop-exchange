@@ -1,5 +1,3 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
 function nicknameToWords(nickname: string): string {
   return nickname
     .replace(/[0-9]+$/g, '')
@@ -8,7 +6,7 @@ function nicknameToWords(nickname: string): string {
     .trim() || nickname;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
