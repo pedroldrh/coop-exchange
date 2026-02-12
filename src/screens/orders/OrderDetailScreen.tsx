@@ -38,6 +38,7 @@ import { OrderActions } from '../../components/OrderActions';
 import { ProofImage } from '../../components/ProofImage';
 import { ChatSection } from '../../components/ChatSection';
 import { RatingModal } from '../../components/RatingModal';
+import { Avatar } from '../../components/Avatar';
 import { STATUS_LABELS } from '../../lib/constants';
 import type { RequestStatus } from '../../lib/constants';
 import { showAlert } from '../../lib/utils';
@@ -342,6 +343,7 @@ export function OrderDetailScreen({ route }: Props) {
         <Card style={styles.headerCard}>
           <View style={styles.headerRow}>
             <View style={styles.headerParty}>
+              <Avatar name={request.buyer.name} size={44} />
               <Text style={styles.headerPartyLabel}>Requester</Text>
               <Text style={styles.headerPartyName}>
                 {request.buyer.name ?? 'Anonymous'}
@@ -349,6 +351,7 @@ export function OrderDetailScreen({ route }: Props) {
             </View>
             <View style={styles.headerDivider} />
             <View style={styles.headerParty}>
+              <Avatar name={request.seller.name} size={44} />
               <Text style={styles.headerPartyLabel}>Sharer</Text>
               <Text style={styles.headerPartyName}>
                 {request.seller.name ?? 'Anonymous'}
@@ -587,6 +590,7 @@ const styles = StyleSheet.create({
   headerParty: {
     flex: 1,
     alignItems: 'center',
+    gap: 4,
   },
   headerPartyLabel: {
     fontSize: 11,
@@ -594,7 +598,6 @@ const styles = StyleSheet.create({
     color: colors.gray400,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 2,
   },
   headerPartyName: {
     fontSize: 16,

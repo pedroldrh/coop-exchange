@@ -18,6 +18,7 @@ import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
 import { StarDisplay } from '../../components/StarDisplay';
 import { RequestCard } from '../../components/RequestCard';
+import { Avatar } from '../../components/Avatar';
 import { formatDate } from '../../lib/utils';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
@@ -92,10 +93,8 @@ export function PostDetailScreen({ route, navigation }: Props) {
       {/* Freshman Info Card */}
       <Card style={styles.sellerCard}>
         <View style={styles.sellerHeader}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>
-              {(post.seller.name ?? '?')[0].toUpperCase()}
-            </Text>
+          <View style={{ marginRight: 12 }}>
+            <Avatar name={post.seller.name} size={48} />
           </View>
           <View style={styles.sellerDetails}>
             <Text style={styles.sellerName}>
@@ -205,20 +204,6 @@ const styles = StyleSheet.create({
   sellerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.white,
   },
   sellerDetails: {
     flex: 1,

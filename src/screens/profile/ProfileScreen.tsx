@@ -17,7 +17,8 @@ import { Loading } from '../../components/ui/Loading';
 import { StarDisplay } from '../../components/StarDisplay';
 import { PostCard } from '../../components/PostCard';
 import { BadgeDisplay } from '../../components/BadgeDisplay';
-import { getInitials, showAlert, showConfirm } from '../../lib/utils';
+import { Avatar } from '../../components/Avatar';
+import { showAlert, showConfirm } from '../../lib/utils';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 
@@ -65,7 +66,6 @@ export function ProfileScreen({ navigation }: Props) {
     return <Loading message="Loading profile..." />;
   }
 
-  const initials = getInitials(profile.name ?? '');
   const roleLabel =
     profile.role_preference === 'admin'
       ? 'Admin'
@@ -79,8 +79,8 @@ export function ProfileScreen({ navigation }: Props) {
     >
       {/* Profile Header */}
       <View style={styles.profileHeader}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarText}>{initials}</Text>
+        <View style={{ marginBottom: 12 }}>
+          <Avatar name={profile.name} size={80} />
         </View>
         <Text style={styles.userName}>{profile.name ?? 'Anonymous'}</Text>
         <Text style={styles.userEmail}>{profile.email}</Text>
@@ -170,20 +170,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray200,
-  },
-  avatarCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: '600',
-    color: colors.white,
   },
   userName: {
     fontSize: 22,

@@ -5,6 +5,7 @@ import { Badge } from './ui/Badge';
 import { StarDisplay } from './StarDisplay';
 import { formatRelativeTime } from '../lib/utils';
 import { getTopBadge } from '../lib/badges';
+import { Avatar } from './Avatar';
 import type { Post, Profile } from '../types/database';
 
 type PostWithSeller = Post & {
@@ -41,6 +42,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
     <Card onPress={onPress} style={styles.card}>
       {/* Header: seller info + time */}
       <View style={styles.header}>
+        <Avatar name={post.seller.name} size={36} />
         <View style={styles.sellerInfo}>
           <View style={styles.nameRow}>
             <Text style={styles.sellerName}>
@@ -82,12 +84,12 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 8,
+    gap: 10,
   },
   sellerInfo: {
-    flexShrink: 1,
+    flex: 1,
     gap: 2,
   },
   nameRow: {
