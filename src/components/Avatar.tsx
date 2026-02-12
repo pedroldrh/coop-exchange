@@ -11,16 +11,36 @@ const colors = {
   white: '#FFFFFF',
 };
 
+/**
+ * Split a PascalCase / camelCase nickname into words and strip trailing numbers.
+ * "SpicyNugget742" → "Spicy Nugget"
+ * "FireDorito"     → "Fire Dorito"
+ * "BurritoQueen99" → "Burrito Queen"
+ */
+function nicknameToWords(nickname: string): string {
+  return nickname
+    .replace(/[0-9]+$/g, '')           // strip trailing numbers
+    .replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase split
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2') // consecutive caps
+    .trim() || nickname;
+}
+
+function buildAvatarUrl(name: string, size: number): string {
+  const words = nicknameToWords(name);
+  const prompt = `${words}, cute cartoon character avatar, food mascot style, vibrant colors, simple background, digital art`;
+  const encoded = encodeURIComponent(prompt);
+  const seed = encodeURIComponent(name);
+  return `https://image.pollinations.ai/prompt/${encoded}?width=${size}&height=${size}&seed=${seed}&nologo=true`;
+}
+
 export function Avatar({ name, size = 48 }: AvatarProps) {
   const [failed, setFailed] = useState(false);
-  const seed = encodeURIComponent(name ?? 'anon');
-  const uri = `https://api.dicebear.com/9.x/adventurer/png?seed=${seed}&size=${size * 2}`;
-
   const borderRadius = size / 2;
+  const imgSize = Math.max(size * 2, 256); // request higher res for quality
 
   if (failed || !name) {
     const initials = (name ?? '?')
-      .split(' ')
+      .split(/(?=[A-Z])/)
       .map((w) => w[0])
       .join('')
       .toUpperCase()
@@ -32,6 +52,8 @@ export function Avatar({ name, size = 48 }: AvatarProps) {
       </View>
     );
   }
+
+  const uri = buildAvatarUrl(name, imgSize);
 
   return (
     <Image
