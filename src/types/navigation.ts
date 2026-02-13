@@ -12,7 +12,6 @@
 
 export type AuthStackParamList = {
   Login: undefined;
-  Verify: { email: string };
   ProfileSetup: undefined;
 };
 

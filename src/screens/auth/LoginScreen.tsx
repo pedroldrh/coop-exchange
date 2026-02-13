@@ -17,12 +17,10 @@ import { theme } from '../../lib/theme';
 import { WebContainer } from '../../components/ui/WebContainer';
 
 export function LoginScreen() {
-  const { signInWithPassword, signUp } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const { signInWithOtp } = useAuth();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
   const onSubmit = async () => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -35,24 +33,13 @@ export function LoginScreen() {
       showAlert('Error', `Email must end with @${EMAIL_DOMAIN}`);
       return;
     }
-    if (password.length < 6) {
-      showAlert('Error', 'Password must be at least 6 characters');
-      return;
-    }
-    if (isSignUp && password !== confirmPassword) {
-      showAlert('Error', 'Passwords do not match');
-      return;
-    }
 
     setLoading(true);
     try {
-      if (isSignUp) {
-        await signUp(trimmedEmail, password);
-      } else {
-        await signInWithPassword(trimmedEmail, password);
-      }
+      await signInWithOtp(trimmedEmail);
+      setSent(true);
     } catch (err: any) {
-      showAlert('Error', err.message ?? 'Authentication failed');
+      showAlert('Error', err.message ?? 'Failed to send magic link');
     } finally {
       setLoading(false);
     }
@@ -80,101 +67,79 @@ export function LoginScreen() {
             <Text style={styles.tagline}>
               Give your meal swipes to other Gennies and get access to free food
             </Text>
+            <Text style={styles.mission}>
+              Making the swipe system more efficient and saving money for students already paying $90k to be here.
+            </Text>
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>
-              {isSignUp ? 'Create Account' : 'Welcome Back'}
-            </Text>
-            <Text style={styles.cardSubtitle}>
-              {isSignUp
-                ? 'Sign up with your W&L email'
-                : 'Sign in to your account'}
-            </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>{'\u2709'}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={`you@${EMAIL_DOMAIN}`}
-                  placeholderTextColor={theme.colors.textMuted}
-                  autoCapitalize="none"
-                  autoComplete="email"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                  editable={!loading}
-                />
-              </View>
+          {sent ? (
+            <View style={styles.card}>
+              <Text style={styles.sentIcon}>{'\u2709\uFE0F'}</Text>
+              <Text style={styles.cardTitle}>Check Your Email</Text>
+              <Text style={styles.sentMessage}>
+                We sent a magic link to{' '}
+                <Text style={styles.emailHighlight}>
+                  {email.trim().toLowerCase()}
+                </Text>
+                . Tap the link in your email to sign in.
+              </Text>
+              <TouchableOpacity
+                style={styles.backButton}
+                onPress={() => {
+                  setSent(false);
+                  setEmail('');
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.backButtonText}>
+                  Use a different email
+                </Text>
+              </TouchableOpacity>
             </View>
+          ) : (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Welcome</Text>
+              <Text style={styles.cardSubtitle}>
+                Sign in with your W&L email
+              </Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>{'\uD83D\uDD12'}</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder={isSignUp ? 'Create a password' : 'Enter your password'}
-                  placeholderTextColor={theme.colors.textMuted}
-                  secureTextEntry
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!loading}
-                  onSubmitEditing={isSignUp ? undefined : onSubmit}
-                />
-              </View>
-            </View>
-
-            {isSignUp && (
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <Text style={styles.inputLabel}>Email</Text>
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.inputIcon}>{'\uD83D\uDD12'}</Text>
+                  <Text style={styles.inputIcon}>{'\u2709'}</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Confirm your password"
+                    placeholder={`you@${EMAIL_DOMAIN}`}
                     placeholderTextColor={theme.colors.textMuted}
-                    secureTextEntry
-                    value={confirmPassword}
-                    onChangeText={setConfirmPassword}
+                    autoCapitalize="none"
+                    autoComplete="email"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
                     editable={!loading}
                     onSubmitEditing={onSubmit}
                   />
                 </View>
               </View>
-            )}
 
-            <TouchableOpacity
-              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-              onPress={onSubmit}
-              activeOpacity={0.85}
-              disabled={loading}
-            >
-              <Text style={styles.submitButtonText}>
-                {loading
-                  ? (isSignUp ? 'Creating Account...' : 'Signing In...')
-                  : (isSignUp ? 'Create Account' : 'Sign In')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={onSubmit}
+                activeOpacity={0.85}
+                disabled={loading}
+              >
+                <Text style={styles.submitButtonText}>
+                  {loading ? 'Sending Link...' : 'Send Magic Link'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-          <View style={styles.toggleRow}>
-            <Text style={styles.toggleLabel}>
-              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+          <View style={styles.anonNotice}>
+            <Text style={styles.anonIcon}>{'\uD83D\uDD75'}</Text>
+            <Text style={styles.anonText}>
+              Your identity is always anonymous. You'll be assigned a random nickname so no one knows who you are.
             </Text>
-            <TouchableOpacity
-              onPress={() => {
-                setIsSignUp(!isSignUp);
-                setConfirmPassword('');
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.toggleLink}>
-                {isSignUp ? 'Sign In' : 'Sign Up'}
-              </Text>
-            </TouchableOpacity>
           </View>
 
           <Text style={styles.footer}>
@@ -226,6 +191,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 22,
   },
+  mission: {
+    fontSize: 13,
+    color: theme.colors.primary,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginTop: 10,
+    fontWeight: '600',
+  },
   card: {
     backgroundColor: theme.colors.cardBg,
     borderRadius: theme.radius.xxl,
@@ -242,6 +215,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.textSecondary,
     marginBottom: 24,
+  },
+  sentIcon: {
+    fontSize: 40,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  sentMessage: {
+    fontSize: 15,
+    color: theme.colors.textSecondary,
+    lineHeight: 22,
+    marginTop: 8,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  emailHighlight: {
+    color: theme.colors.primary,
+    fontWeight: '700',
+  },
+  backButton: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  backButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.primary,
   },
   inputGroup: {
     marginBottom: 16,
@@ -294,21 +293,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
   },
-  toggleRow: {
+  anonNotice: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
-    gap: 6,
+    backgroundColor: theme.colors.cardBg,
+    borderRadius: theme.radius.lg,
+    padding: 14,
+    marginTop: 16,
+    gap: 10,
+    ...theme.shadow.sm,
   },
-  toggleLabel: {
-    fontSize: 14,
+  anonIcon: {
+    fontSize: 20,
+  },
+  anonText: {
+    flex: 1,
+    fontSize: 13,
     color: theme.colors.textSecondary,
-  },
-  toggleLink: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: theme.colors.primary,
+    lineHeight: 18,
   },
   footer: {
     textAlign: 'center',

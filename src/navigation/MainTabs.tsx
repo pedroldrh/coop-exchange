@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { useOrderNotifications } from '../hooks/use-order-notifications';
+import { useWebPush } from '../hooks/use-web-push';
 import { FeedStack } from './FeedStack';
 import { OrdersStack } from './OrdersStack';
 import { ProfileStack } from './ProfileStack';
@@ -15,6 +16,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export function MainTabs() {
   const { isAdmin } = useAuth();
   useOrderNotifications();
+  useWebPush();
 
   return (
     <Tab.Navigator

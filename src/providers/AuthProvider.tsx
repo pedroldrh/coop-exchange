@@ -27,10 +27,8 @@ interface AuthContextValue {
   isAdmin: boolean;
   /** False when the profile row exists but name is still null */
   profileComplete: boolean;
-  /** Sign in with email + password */
-  signInWithPassword: (email: string, password: string) => Promise<void>;
-  /** Sign up with email + password */
-  signUp: (email: string, password: string) => Promise<void>;
+  /** Send a magic link to the given email (handles both sign-in and sign-up) */
+  signInWithOtp: (email: string) => Promise<void>;
   /** Sign out and clear local state */
   signOut: () => Promise<void>;
   /** Re-fetch the profile from Supabase (e.g. after editing) */
@@ -98,13 +96,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ------- public API -------
 
-  const signInWithPassword = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }, []);
-
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+  const signInWithOtp = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: 'https://foodie-co.com' },
+    });
     if (error) throw error;
   }, []);
 
@@ -156,8 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signInWithPassword,
-      signUp,
+      signInWithOtp,
       signOut,
       refreshProfile,
     }),
@@ -168,8 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signInWithPassword,
-      signUp,
+      signInWithOtp,
       signOut,
       refreshProfile,
     ],

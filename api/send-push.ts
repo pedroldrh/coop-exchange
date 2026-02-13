@@ -1,7 +1,10 @@
 /**
  * Vercel serverless function — receives Supabase Database Webhook
- * on `requests` INSERT/UPDATE and sends email notifications via Resend.
+ * on `requests` INSERT/UPDATE and sends notifications via email (Resend)
+ * and web push (VAPID).
  */
+
+import webpush from 'web-push';
 
 interface WebhookPayload {
   type: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -37,6 +40,8 @@ export default async function handler(req: any, res: any) {
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+  const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(500).json({ error: 'Missing server configuration' });
@@ -44,6 +49,15 @@ export default async function handler(req: any, res: any) {
 
   if (!RESEND_API_KEY) {
     return res.status(500).json({ error: 'Missing RESEND_API_KEY' });
+  }
+
+  // Configure web push if VAPID keys are available
+  if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+    webpush.setVapidDetails(
+      'mailto:notifications@foodie-co.com',
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY,
+    );
   }
 
   const payload: WebhookPayload = req.body;
@@ -57,9 +71,9 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // Look up recipient's email
+    // Look up recipient's email and push token
     const profileRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}&select=email,name`,
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}&select=email,name,push_token`,
       {
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -139,7 +153,30 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: 'Failed to send email', details: emailData });
     }
 
-    return res.status(200).json({ sent: true, id: emailData.id });
+    // Send web push notification if the recipient has a push subscription
+    let pushSent = false;
+    const pushToken = profiles[0]?.push_token;
+    if (pushToken && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+      try {
+        const subscription = JSON.parse(pushToken);
+        // Verify it looks like a web push subscription (has endpoint)
+        if (subscription.endpoint) {
+          await webpush.sendNotification(
+            subscription,
+            JSON.stringify({
+              title: notification.title,
+              body: notification.body,
+              url: 'https://foodie-co.com',
+            }),
+          );
+          pushSent = true;
+        }
+      } catch (pushErr: any) {
+        console.warn('[send-push] Web push failed:', pushErr.message);
+      }
+    }
+
+    return res.status(200).json({ sent: true, id: emailData.id, pushSent });
   } catch (err: any) {
     return res.status(500).json({ error: err.message ?? 'Unknown error' });
   }

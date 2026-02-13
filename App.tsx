@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import { QueryProvider } from './src/providers/QueryProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { supabaseConfigured } from './src/lib/supabase';
 import { theme } from './src/lib/theme';
+import { registerServiceWorker } from './src/lib/register-sw';
 
 function SetupScreen() {
   return (
@@ -89,6 +90,10 @@ const webClip = Platform.OS === 'web'
   : {};
 
 export default function App() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+
   if (!supabaseConfigured) {
     return (
       <SafeAreaProvider>
