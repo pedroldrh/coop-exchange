@@ -3,6 +3,7 @@ import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
+import { useWebPush } from '../hooks/use-web-push';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { InstallPromptScreen } from '../screens/auth/InstallPromptScreen';
 import { MainTabs } from './MainTabs';
@@ -31,6 +32,7 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { user, loading } = useAuth();
+  useWebPush();
 
   if (loading) {
     return (
