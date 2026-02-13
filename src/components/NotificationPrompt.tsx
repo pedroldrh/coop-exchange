@@ -33,7 +33,8 @@ export function NotificationPrompt({ visible, onEnable, onDismiss }: Props) {
             </Text>
           </View>
           <Text style={styles.instruction}>
-            Tap "Enable" below, then tap{' '}
+            We won't bombard you — you'll only get notified when something
+            needs your attention. Tap "Enable" below, then tap{' '}
             <Text style={styles.instructionBold}>"Allow"</Text> on the next
             popup.
           </Text>
