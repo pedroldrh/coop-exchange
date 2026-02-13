@@ -23,9 +23,10 @@ import { theme } from '../../lib/theme';
 type Props = NativeStackScreenProps<FeedStackParamList, 'CreateRequest'>;
 
 export function CreateRequestScreen({ route, navigation }: Props) {
-  const { postId, sellerId } = route.params;
+  const { postId, sellerId, swipes } = route.params;
   const { user } = useAuth();
   const createRequest = useCreateRequest();
+  const maxBudget = SWIPE_VALUE * swipes;
 
   const [selectedLocation, setSelectedLocation] = useState<LocationKey | null>(null);
   const menu = selectedLocation ? LOCATIONS[selectedLocation].menu : null;
@@ -138,12 +139,13 @@ export function CreateRequestScreen({ route, navigation }: Props) {
           {menu && (
             <>
               <Text style={styles.menuSubheading}>
-                Choose items up to ${SWIPE_VALUE.toFixed(2)}
+                Choose items up to ${maxBudget.toFixed(2)} ({swipes} swipe{swipes !== 1 ? 's' : ''})
               </Text>
 
               <View style={styles.menuContainer}>
                 <MenuPicker
                   menu={menu}
+                  maxBudget={maxBudget}
                   selections={selections}
                   onSelectionsChange={setSelections}
                 />

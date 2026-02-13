@@ -79,6 +79,7 @@ export function FeedScreen({ navigation }: Props) {
         navigation.navigate('CreateRequest', {
           postId: post.id,
           sellerId: post.seller_id,
+          swipes: post.capacity_remaining,
         });
       }
     },

@@ -7,16 +7,16 @@ import {
   StyleSheet,
 } from 'react-native';
 import { type MenuCategory, type MenuItem } from '../lib/menu';
-import { SWIPE_VALUE } from '../lib/constants';
 import { theme } from '../lib/theme';
 
 interface MenuPickerProps {
   menu: MenuCategory[];
+  maxBudget: number;
   selections: Record<string, number>;
   onSelectionsChange: (selections: Record<string, number>) => void;
 }
 
-export function MenuPicker({ menu, selections, onSelectionsChange }: MenuPickerProps) {
+export function MenuPicker({ menu, maxBudget, selections, onSelectionsChange }: MenuPickerProps) {
   const [activeCategory, setActiveCategory] = useState(menu[0].name);
 
   const total = useMemo(() => {
@@ -39,7 +39,7 @@ export function MenuPicker({ menu, selections, onSelectionsChange }: MenuPickerP
   );
 
   const canAddItem = useCallback(
-    (item: MenuItem) => total + item.price <= SWIPE_VALUE + 0.001,
+    (item: MenuItem) => total + item.price <= maxBudget + 0.001,
     [total],
   );
 
@@ -164,10 +164,10 @@ export function MenuPicker({ menu, selections, onSelectionsChange }: MenuPickerP
             {selectedCount} item{selectedCount !== 1 ? 's' : ''}
           </Text>
           <Text style={styles.totalAmount}>
-            <Text style={total > SWIPE_VALUE ? styles.totalOver : styles.totalOk}>
+            <Text style={total > maxBudget ? styles.totalOver : styles.totalOk}>
               ${total.toFixed(2)}
             </Text>
-            <Text style={styles.totalMax}> / ${SWIPE_VALUE.toFixed(2)}</Text>
+            <Text style={styles.totalMax}> / ${maxBudget.toFixed(2)}</Text>
           </Text>
         </View>
         <View style={styles.progressBarBg}>
@@ -175,9 +175,9 @@ export function MenuPicker({ menu, selections, onSelectionsChange }: MenuPickerP
             style={[
               styles.progressBarFill,
               {
-                width: `${Math.min((total / SWIPE_VALUE) * 100, 100)}%`,
+                width: `${Math.min((total / maxBudget) * 100, 100)}%`,
               },
-              total >= SWIPE_VALUE && styles.progressBarFull,
+              total >= maxBudget && styles.progressBarFull,
             ]}
           />
         </View>

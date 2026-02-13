@@ -41,6 +41,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
     navigation.navigate('CreateRequest', {
       postId: post.id,
       sellerId: post.seller_id,
+      swipes: post.capacity_remaining,
     });
   }, [navigation, post]);
 
