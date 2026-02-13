@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { Platform } from 'react-native';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types/database';
@@ -66,6 +67,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ------- bootstrap: restore session + listen for changes -------
   useEffect(() => {
+    // 0. On web, explicitly handle auth callback params in the URL
+    //    (covers both PKCE ?code= and implicit #access_token= cases)
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const accessToken = hashParams.get('access_token');
+
+      if (code) {
+        console.log('[AuthProvider] Found auth code in URL, exchanging...');
+        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+          if (error) console.warn('[AuthProvider] Code exchange failed:', error.message);
+          // Clean URL regardless
+          window.history.replaceState({}, '', url.pathname);
+        });
+      } else if (accessToken) {
+        console.log('[AuthProvider] Found access token in URL hash');
+        // Supabase detectSessionInUrl should handle this, but clean the hash
+        // after a short delay to let Supabase process it
+        setTimeout(() => {
+          window.history.replaceState({}, '', url.pathname);
+        }, 1000);
+      }
+    }
+
     // 1. Restore persisted session
     supabase.auth.getSession().then(({ data: { session: restored } }) => {
       setSession(restored);
