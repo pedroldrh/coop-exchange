@@ -395,7 +395,14 @@ export function OrderDetailScreen({ route }: Props) {
                 pressed && styles.mobileOrderButtonPressed,
               ]}
               onPress={() => {
-                Linking.openURL('https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529');
+                // Try to open the app directly; fall back to App Store
+                const appLink = 'transactmobileorder://';
+                const storeLink = 'https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529';
+                const fallback = setTimeout(() => Linking.openURL(storeLink), 1500);
+                Linking.openURL(appLink).catch(() => {
+                  clearTimeout(fallback);
+                  Linking.openURL(storeLink);
+                });
               }}
             >
               <Text style={styles.mobileOrderButtonText}>
