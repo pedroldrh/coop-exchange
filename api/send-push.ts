@@ -144,6 +144,12 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
           title: 'Your order is ready for pickup!',
           body: 'Head over to pick up your food.',
         };
+      case 'cancelled':
+        return {
+          recipientId: record.seller_id,
+          title: 'Request cancelled',
+          body: 'A buyer cancelled their swipe request.',
+        };
       default:
         return null;
     }
