@@ -6,7 +6,6 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Platform } from 'react-native';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { Profile } from '../types/database';
@@ -28,8 +27,10 @@ interface AuthContextValue {
   isAdmin: boolean;
   /** False when the profile row exists but name is still null */
   profileComplete: boolean;
-  /** Send a magic link to the given email (handles both sign-in and sign-up) */
+  /** Send a 6-digit OTP code to the given email */
   signInWithOtp: (email: string) => Promise<void>;
+  /** Verify the 6-digit OTP code the user received */
+  verifyOtp: (email: string, token: string) => Promise<void>;
   /** Sign out and clear local state */
   signOut: () => Promise<void>;
   /** Re-fetch the profile from Supabase (e.g. after editing) */
@@ -67,31 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ------- bootstrap: restore session + listen for changes -------
   useEffect(() => {
-    // 0. On web, explicitly handle auth callback params in the URL
-    //    (covers both PKCE ?code= and implicit #access_token= cases)
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get('code');
-      const hashParams = new URLSearchParams(window.location.hash.slice(1));
-      const accessToken = hashParams.get('access_token');
-
-      if (code) {
-        console.log('[AuthProvider] Found auth code in URL, exchanging...');
-        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-          if (error) console.warn('[AuthProvider] Code exchange failed:', error.message);
-          // Clean URL regardless
-          window.history.replaceState({}, '', url.pathname);
-        });
-      } else if (accessToken) {
-        console.log('[AuthProvider] Found access token in URL hash');
-        // Supabase detectSessionInUrl should handle this, but clean the hash
-        // after a short delay to let Supabase process it
-        setTimeout(() => {
-          window.history.replaceState({}, '', url.pathname);
-        }, 1000);
-      }
-    }
-
     // 1. Restore persisted session
     supabase.auth.getSession().then(({ data: { session: restored } }) => {
       setSession(restored);
@@ -123,9 +99,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ------- public API -------
 
   const signInWithOtp = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) throw error;
+  }, []);
+
+  const verifyOtp = useCallback(async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      options: { emailRedirectTo: 'https://foodie-co.com' },
+      token,
+      type: 'email',
     });
     if (error) throw error;
   }, []);
@@ -179,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       profileComplete,
       signInWithOtp,
+      verifyOtp,
       signOut,
       refreshProfile,
     }),
@@ -190,6 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAdmin,
       profileComplete,
       signInWithOtp,
+      verifyOtp,
       signOut,
       refreshProfile,
     ],

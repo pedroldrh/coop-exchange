@@ -17,12 +17,13 @@ import { theme } from '../../lib/theme';
 import { WebContainer } from '../../components/ui/WebContainer';
 
 export function LoginScreen() {
-  const { signInWithOtp } = useAuth();
+  const { signInWithOtp, verifyOtp } = useAuth();
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const onSubmit = async () => {
+  const onSendCode = async () => {
     const trimmedEmail = email.trim().toLowerCase();
 
     if (!trimmedEmail) {
@@ -39,7 +40,36 @@ export function LoginScreen() {
       await signInWithOtp(trimmedEmail);
       setSent(true);
     } catch (err: any) {
-      showAlert('Error', err.message ?? 'Failed to send magic link');
+      showAlert('Error', err.message ?? 'Failed to send code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onVerifyCode = async () => {
+    const trimmed = code.trim();
+    if (trimmed.length !== 6) {
+      showAlert('Error', 'Please enter the 6-digit code');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await verifyOtp(email.trim().toLowerCase(), trimmed);
+    } catch (err: any) {
+      showAlert('Error', err.message ?? 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onResend = async () => {
+    setLoading(true);
+    try {
+      await signInWithOtp(email.trim().toLowerCase());
+      showAlert('Code Sent', 'A new code has been sent to your email.');
+    } catch (err: any) {
+      showAlert('Error', err.message ?? 'Failed to resend code');
     } finally {
       setLoading(false);
     }
@@ -74,27 +104,56 @@ export function LoginScreen() {
 
           {sent ? (
             <View style={styles.card}>
-              <Text style={styles.sentIcon}>{'\u2709\uFE0F'}</Text>
-              <Text style={styles.cardTitle}>Check Your Email</Text>
-              <Text style={styles.sentMessage}>
-                We sent a magic link to{' '}
+              <Text style={styles.cardTitle}>Enter Code</Text>
+              <Text style={styles.cardSubtitle}>
+                We sent a 6-digit code to{' '}
                 <Text style={styles.emailHighlight}>
                   {email.trim().toLowerCase()}
                 </Text>
-                . Tap the link in your email to sign in.
               </Text>
+
+              <View style={styles.inputGroup}>
+                <TextInput
+                  style={styles.codeInput}
+                  placeholder="000000"
+                  placeholderTextColor={theme.colors.textMuted}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  autoFocus
+                  value={code}
+                  onChangeText={(text) => setCode(text.replace(/[^0-9]/g, ''))}
+                  editable={!loading}
+                  onSubmitEditing={onVerifyCode}
+                  textAlign="center"
+                />
+              </View>
+
               <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => {
-                  setSent(false);
-                  setEmail('');
-                }}
-                activeOpacity={0.7}
+                style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+                onPress={onVerifyCode}
+                activeOpacity={0.85}
+                disabled={loading}
               >
-                <Text style={styles.backButtonText}>
-                  Use a different email
+                <Text style={styles.submitButtonText}>
+                  {loading ? 'Verifying...' : 'Verify'}
                 </Text>
               </TouchableOpacity>
+
+              <View style={styles.secondaryActions}>
+                <TouchableOpacity onPress={onResend} disabled={loading} activeOpacity={0.7}>
+                  <Text style={styles.linkText}>Resend code</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setSent(false);
+                    setEmail('');
+                    setCode('');
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.linkText}>Use a different email</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             <View style={styles.card}>
@@ -117,19 +176,19 @@ export function LoginScreen() {
                     value={email}
                     onChangeText={setEmail}
                     editable={!loading}
-                    onSubmitEditing={onSubmit}
+                    onSubmitEditing={onSendCode}
                   />
                 </View>
               </View>
 
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-                onPress={onSubmit}
+                onPress={onSendCode}
                 activeOpacity={0.85}
                 disabled={loading}
               >
                 <Text style={styles.submitButtonText}>
-                  {loading ? 'Sending Link...' : 'Send Magic Link'}
+                  {loading ? 'Sending Code...' : 'Send Code'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -216,28 +275,28 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginBottom: 24,
   },
-  sentIcon: {
-    fontSize: 40,
-    textAlign: 'center',
-    marginBottom: 12,
-  },
-  sentMessage: {
-    fontSize: 15,
-    color: theme.colors.textSecondary,
-    lineHeight: 22,
-    marginTop: 8,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
   emailHighlight: {
     color: theme.colors.primary,
     fontWeight: '700',
   },
-  backButton: {
-    alignItems: 'center',
-    paddingVertical: 12,
+  codeInput: {
+    backgroundColor: theme.colors.inputBg,
+    borderWidth: 1.5,
+    borderColor: theme.colors.inputBorder,
+    borderRadius: theme.radius.lg,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: 12,
+    color: theme.colors.textPrimary,
   },
-  backButtonText: {
+  secondaryActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  linkText: {
     fontSize: 14,
     fontWeight: '700',
     color: theme.colors.primary,
