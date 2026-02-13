@@ -69,33 +69,17 @@ export default async function handler(req: any, res: any) {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Ensure the user exists (creates if not)
-    const { data: userData } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = userData?.users?.find(
-      (u: any) => u.email?.toLowerCase() === email.toLowerCase(),
-    );
+    // Try to create the user — if they already exist, that's fine
+    const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+    });
 
-    let userId: string;
-
-    if (existingUser) {
-      userId = existingUser.id;
-      // Ensure email is confirmed
-      if (!existingUser.email_confirmed_at) {
-        await supabaseAdmin.auth.admin.updateUserById(userId, {
-          email_confirm: true,
-        });
-      }
-    } else {
-      // Create a new user with confirmed email
-      const { data: newUser, error: createErr } =
-        await supabaseAdmin.auth.admin.createUser({
-          email,
-          email_confirm: true,
-        });
-      if (createErr || !newUser?.user) {
-        return res.status(500).json({ error: 'Failed to create user' });
-      }
-      userId = newUser.user.id;
+    if (createErr && !createErr.message?.includes('already been registered')) {
+      return res.status(500).json({
+        error: 'Failed to provision user',
+        details: createErr.message,
+      });
     }
 
     // Generate a magic link (gives us a verified token)
@@ -106,7 +90,10 @@ export default async function handler(req: any, res: any) {
       });
 
     if (linkErr || !linkData) {
-      return res.status(500).json({ error: 'Failed to generate session' });
+      return res.status(500).json({
+        error: 'Failed to generate session',
+        details: linkErr?.message,
+      });
     }
 
     // Verify the token server-side to get session tokens
