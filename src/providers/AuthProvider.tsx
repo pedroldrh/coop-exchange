@@ -27,10 +27,10 @@ interface AuthContextValue {
   isAdmin: boolean;
   /** False when the profile row exists but name is still null */
   profileComplete: boolean;
-  /** Send a 6-digit OTP code to the given email */
-  signInWithOtp: (email: string) => Promise<void>;
-  /** Verify the 6-digit OTP code the user received */
-  verifyOtp: (email: string, token: string) => Promise<void>;
+  /** Send a 6-digit verification code to the given email */
+  sendCode: (email: string) => Promise<void>;
+  /** Verify the 6-digit code and establish a session */
+  verifyCode: (email: string, code: string) => Promise<void>;
   /** Sign out and clear local state */
   signOut: () => Promise<void>;
   /** Re-fetch the profile from Supabase (e.g. after editing) */
@@ -98,28 +98,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ------- public API -------
 
-  const signInWithOtp = useCallback(async (email: string) => {
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) throw error;
+  const sendCode = useCallback(async (email: string) => {
+    const res = await fetch('/api/auth/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Failed to send code');
   }, []);
 
-  const verifyOtp = useCallback(async (email: string, token: string) => {
-    // For existing users, Supabase creates a 'magiclink' type token.
-    // For new users, it creates a 'signup' type token.
-    // Try magiclink first, then fall back to signup.
-    const { error: mlError } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'magiclink',
+  const verifyCode = useCallback(async (email: string, code: string) => {
+    const res = await fetch('/api/auth/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
     });
-    if (!mlError) return;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Verification failed');
 
-    const { error: suError } = await supabase.auth.verifyOtp({
-      email,
-      token,
-      type: 'signup',
+    // Set the session from the server-provided tokens
+    const { error } = await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
     });
-    if (suError) throw suError;
+    if (error) throw error;
   }, []);
 
   const signOut = useCallback(async () => {
@@ -170,8 +173,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signInWithOtp,
-      verifyOtp,
+      sendCode,
+      verifyCode,
       signOut,
       refreshProfile,
     }),
@@ -182,8 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isAdmin,
       profileComplete,
-      signInWithOtp,
-      verifyOtp,
+      sendCode,
+      verifyCode,
       signOut,
       refreshProfile,
     ],

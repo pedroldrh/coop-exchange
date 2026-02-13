@@ -17,7 +17,7 @@ import { theme } from '../../lib/theme';
 import { WebContainer } from '../../components/ui/WebContainer';
 
 export function LoginScreen() {
-  const { signInWithOtp, verifyOtp } = useAuth();
+  const { sendCode, verifyCode } = useAuth();
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,7 +37,7 @@ export function LoginScreen() {
 
     setLoading(true);
     try {
-      await signInWithOtp(trimmedEmail);
+      await sendCode(trimmedEmail);
       setSent(true);
     } catch (err: any) {
       showAlert('Error', err.message ?? 'Failed to send code');
@@ -55,7 +55,7 @@ export function LoginScreen() {
 
     setLoading(true);
     try {
-      await verifyOtp(email.trim().toLowerCase(), trimmed);
+      await verifyCode(email.trim().toLowerCase(), trimmed);
     } catch (err: any) {
       showAlert('Error', err.message ?? 'Invalid code. Please try again.');
     } finally {
@@ -66,7 +66,7 @@ export function LoginScreen() {
   const onResend = async () => {
     setLoading(true);
     try {
-      await signInWithOtp(email.trim().toLowerCase());
+      await sendCode(email.trim().toLowerCase());
       showAlert('Code Sent', 'A new code has been sent to your email.');
     } catch (err: any) {
       showAlert('Error', err.message ?? 'Failed to resend code');
