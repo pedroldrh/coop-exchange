@@ -1,8 +1,9 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
+  Pressable,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
@@ -61,27 +62,6 @@ export function OrdersListScreen({ navigation }: Props) {
     );
   }, [isLoading]);
 
-  const lastScrollY = useRef(0);
-  const atTopCount = useRef(0);
-
-  const handleScroll = useCallback(
-    (e: any) => {
-      if (Platform.OS !== 'web' || isRefetching) return;
-      const offsetY = e.nativeEvent.contentOffset.y;
-      if (offsetY <= 0 && lastScrollY.current <= 0) {
-        atTopCount.current += 1;
-        if (atTopCount.current >= 3) {
-          atTopCount.current = 0;
-          refetch();
-        }
-      } else {
-        atTopCount.current = 0;
-      }
-      lastScrollY.current = offsetY;
-    },
-    [isRefetching, refetch],
-  );
-
   const keyExtractor = useCallback(
     (item: RequestWithDetails) => item.id,
     [],
@@ -100,10 +80,18 @@ export function OrdersListScreen({ navigation }: Props) {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           ListHeaderComponent={
-            Platform.OS === 'web' && isRefetching ? (
-              <View style={styles.webRefreshIndicator}>
-                <ActivityIndicator size="small" color={theme.colors.primary} />
-              </View>
+            Platform.OS === 'web' ? (
+              <Pressable
+                style={styles.webRefreshRow}
+                onPress={() => { if (!isRefetching) refetch(); }}
+                disabled={isRefetching}
+              >
+                {isRefetching ? (
+                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                ) : (
+                  <Text style={styles.webRefreshText}>Tap to refresh</Text>
+                )}
+              </Pressable>
             ) : undefined
           }
           ListEmptyComponent={renderEmpty}
@@ -117,8 +105,6 @@ export function OrdersListScreen({ navigation }: Props) {
             />
           }
           showsVerticalScrollIndicator={false}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
         />
       </View>
     </WebContainer>
@@ -130,9 +116,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.gray50,
   },
-  webRefreshIndicator: {
+  webRefreshRow: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
+  },
+  webRefreshText: {
+    fontSize: 13,
+    color: theme.colors.gray400,
+    fontWeight: '500',
   },
   listContent: {
     padding: 16,
