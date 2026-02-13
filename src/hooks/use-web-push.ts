@@ -25,13 +25,17 @@ export function useWebPush() {
   const { user } = useAuth();
 
   useEffect(() => {
+    console.log('[WebPush] Hook running', { platform: Platform.OS, user: !!user, vapid: !!VAPID_PUBLIC_KEY });
     if (Platform.OS !== 'web') return;
     if (!user) return;
     if (!VAPID_PUBLIC_KEY) {
       console.warn('[WebPush] VAPID public key not configured');
       return;
     }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('[WebPush] serviceWorker or PushManager not available');
+      return;
+    }
 
     let cancelled = false;
 
