@@ -1,9 +1,11 @@
-import React from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { LoginScreen } from '../screens/auth/LoginScreen';
+import { InstallPromptScreen } from '../screens/auth/InstallPromptScreen';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { MainTabs } from './MainTabs';
 import { theme } from '../lib/theme';
@@ -24,19 +26,45 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { user, loading, profileComplete } = useAuth();
+  const [installPromptSeen, setInstallPromptSeen] = useState<boolean | null>(null);
 
-  console.log('[RootNavigator] render:', {
-    hasUser: !!user,
-    loading,
-    profileComplete,
-    showing: loading ? 'loading' : !user ? 'Auth' : !profileComplete ? 'ProfileSetup' : 'MainTabs',
-  });
+  // Check if install prompt has been seen (web only)
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      setInstallPromptSeen(true); // Skip on native
+      return;
+    }
+    AsyncStorage.getItem('install_prompt_seen').then((val) => {
+      setInstallPromptSeen(val === 'true');
+    });
+  }, []);
 
-  if (loading) {
+  // Also check if already running as PWA (standalone mode) — skip prompt
+  const isStandalone =
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    (window.matchMedia?.('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true);
+
+  const showInstallPrompt =
+    Platform.OS === 'web' &&
+    !isStandalone &&
+    user &&
+    installPromptSeen === false;
+
+  if (loading || installPromptSeen === null) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
+    );
+  }
+
+  if (showInstallPrompt) {
+    return (
+      <InstallPromptScreen
+        onDismiss={() => setInstallPromptSeen(true)}
+      />
     );
   }
 
