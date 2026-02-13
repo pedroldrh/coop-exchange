@@ -68,7 +68,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
         width: 100% !important;
         height: 100% !important;
         margin: 0 !important;
-        background-color: #E5E7EB !important;
+        background-color: #FFFFFF !important;
       }
     `;
     document.head.appendChild(style);
@@ -85,12 +85,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 }
 
 const webClip = Platform.OS === 'web'
-  ? {
-      overflow: 'hidden' as const,
-      maxWidth: theme.layout.maxContentWidth,
-      alignSelf: 'center' as const,
-      width: '100%' as any,
-    }
+  ? { overflow: 'hidden' as const, maxWidth: '100vw' as any }
   : {};
 
 export default function App() {
