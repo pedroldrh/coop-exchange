@@ -1,10 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
   StyleSheet,
   RefreshControl,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OrdersStackParamList } from '../../types/navigation';
@@ -59,6 +61,27 @@ export function OrdersListScreen({ navigation }: Props) {
     );
   }, [isLoading]);
 
+  const lastScrollY = useRef(0);
+  const atTopCount = useRef(0);
+
+  const handleScroll = useCallback(
+    (e: any) => {
+      if (Platform.OS !== 'web' || isRefetching) return;
+      const offsetY = e.nativeEvent.contentOffset.y;
+      if (offsetY <= 0 && lastScrollY.current <= 0) {
+        atTopCount.current += 1;
+        if (atTopCount.current >= 3) {
+          atTopCount.current = 0;
+          refetch();
+        }
+      } else {
+        atTopCount.current = 0;
+      }
+      lastScrollY.current = offsetY;
+    },
+    [isRefetching, refetch],
+  );
+
   const keyExtractor = useCallback(
     (item: RequestWithDetails) => item.id,
     [],
@@ -76,15 +99,26 @@ export function OrdersListScreen({ navigation }: Props) {
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
+          ListHeaderComponent={
+            Platform.OS === 'web' && isRefetching ? (
+              <View style={styles.webRefreshIndicator}>
+                <ActivityIndicator size="small" color={theme.colors.primary} />
+              </View>
+            ) : undefined
+          }
           ListEmptyComponent={renderEmpty}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
               tintColor={theme.colors.primary}
+              colors={[theme.colors.primary]}
+              progressBackgroundColor={theme.colors.white}
             />
           }
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         />
       </View>
     </WebContainer>
@@ -95,6 +129,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.gray50,
+  },
+  webRefreshIndicator: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   listContent: {
     padding: 16,

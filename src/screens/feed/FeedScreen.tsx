@@ -6,6 +6,8 @@ import {
   Pressable,
   StyleSheet,
   RefreshControl,
+  ActivityIndicator,
+  Platform,
   Modal,
   Animated,
 } from 'react-native';
@@ -122,6 +124,27 @@ export function FeedScreen({ navigation }: Props) {
     );
   }, [isLoading]);
 
+  const lastScrollY = useRef(0);
+  const atTopCount = useRef(0);
+
+  const handleScroll = useCallback(
+    (e: any) => {
+      if (Platform.OS !== 'web' || isRefetching) return;
+      const offsetY = e.nativeEvent.contentOffset.y;
+      if (offsetY <= 0 && lastScrollY.current <= 0) {
+        atTopCount.current += 1;
+        if (atTopCount.current >= 3) {
+          atTopCount.current = 0;
+          refetch();
+        }
+      } else {
+        atTopCount.current = 0;
+      }
+      lastScrollY.current = offsetY;
+    },
+    [isRefetching, refetch],
+  );
+
   const keyExtractor = useCallback((item: PostWithSeller) => item.id, []);
 
   if (isLoading) {
@@ -136,16 +159,29 @@ export function FeedScreen({ navigation }: Props) {
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
-          ListHeaderComponent={<Leaderboard />}
+          ListHeaderComponent={
+            <>
+              {Platform.OS === 'web' && isRefetching && (
+                <View style={styles.webRefreshIndicator}>
+                  <ActivityIndicator size="small" color={theme.colors.primary} />
+                </View>
+              )}
+              <Leaderboard />
+            </>
+          }
           ListEmptyComponent={renderEmpty}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
               onRefresh={refetch}
               tintColor={theme.colors.primary}
+              colors={[theme.colors.primary]}
+              progressBackgroundColor={theme.colors.white}
             />
           }
           showsVerticalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         />
 
         {user && (
@@ -202,6 +238,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.gray50,
+  },
+  webRefreshIndicator: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   listContent: {
     padding: 16,
