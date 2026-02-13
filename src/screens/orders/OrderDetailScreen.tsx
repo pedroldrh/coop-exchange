@@ -148,24 +148,13 @@ export function OrderDetailScreen({ route }: Props) {
             await declineRequest.mutateAsync(requestId);
             break;
 
-          case 'mark_ordered': {
-            const orderedUri = await selectImage();
-            if (!orderedUri) {
-              setActionLoading(false);
-              return;
-            }
-            const orderedPath = await uploadImage(
-              orderedUri,
-              requestId,
-              'ordered',
-            );
+          case 'mark_ordered':
             await markOrdered.mutateAsync({
               requestId,
-              orderedProofPath: orderedPath,
+              orderedProofPath: '',
               orderIdText: '',
             });
             break;
-          }
 
           case 'mark_picked_up':
             await markPickedUp.mutateAsync(requestId);
