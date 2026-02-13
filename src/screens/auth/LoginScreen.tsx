@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Image,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,32 +20,7 @@ export function LoginScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
 
-  // On web, detect keyboard via visualViewport and shrink container
-  const [webContainerHeight, setWebContainerHeight] = useState<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    const vv = (window as any).visualViewport;
-    if (!vv) return;
-
-    const onResize = () => {
-      setWebContainerHeight(vv.height);
-    };
-
-    vv.addEventListener('resize', onResize);
-    return () => vv.removeEventListener('resize', onResize);
-  }, []);
-
-  // Scroll the focused input into view so the keyboard doesn't cover it
-  const scrollInputIntoView = useCallback((e: any) => {
-    if (Platform.OS === 'web' && e?.target?.scrollIntoView) {
-      setTimeout(() => {
-        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
-    }
-  }, []);
 
   const onSendCode = async () => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -102,22 +76,11 @@ export function LoginScreen() {
 
   return (
     <WebContainer>
-      <View
-        style={[
-          styles.container,
-          webContainerHeight !== undefined && {
-            height: webContainerHeight,
-            flex: undefined as any,
-          },
-        ]}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.spacer} />
           <View style={styles.hero}>
             <View style={styles.logoCircle}>
               <Image
@@ -156,7 +119,7 @@ export function LoginScreen() {
                   onChangeText={(text) => setCode(text.replace(/[^0-9]/g, ''))}
                   editable={!loading}
                   onSubmitEditing={onVerifyCode}
-                  onFocus={scrollInputIntoView}
+
                   textAlign="center"
                 />
               </View>
@@ -210,7 +173,7 @@ export function LoginScreen() {
                     onChangeText={setEmail}
                     editable={!loading}
                     onSubmitEditing={onSendCode}
-                    onFocus={scrollInputIntoView}
+  
                   />
                 </View>
               </View>
@@ -238,25 +201,18 @@ export function LoginScreen() {
           <Text style={styles.footer}>
             Washington and Lee University
           </Text>
-          <View style={styles.spacer} />
-        </ScrollView>
-      </View>
+      </ScrollView>
     </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.bg,
-  },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 24,
-  },
-  spacer: {
-    flex: 1,
+    paddingTop: 48,
+    paddingBottom: 400,
   },
   hero: {
     alignItems: 'center',
