@@ -1,7 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -22,13 +21,30 @@ export function LoginScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
+
+  // On web, detect keyboard via visualViewport and shrink container
+  const [webContainerHeight, setWebContainerHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const vv = (window as any).visualViewport;
+    if (!vv) return;
+
+    const onResize = () => {
+      setWebContainerHeight(vv.height);
+    };
+
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   // Scroll the focused input into view so the keyboard doesn't cover it
   const scrollInputIntoView = useCallback((e: any) => {
     if (Platform.OS === 'web' && e?.target?.scrollIntoView) {
       setTimeout(() => {
         e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 300);
+      }, 150);
     }
   }, []);
 
@@ -86,15 +102,22 @@ export function LoginScreen() {
 
   return (
     <WebContainer>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <View
+        style={[
+          styles.container,
+          webContainerHeight !== undefined && {
+            height: webContainerHeight,
+            flex: undefined as any,
+          },
+        ]}
       >
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.spacer} />
           <View style={styles.hero}>
             <View style={styles.logoCircle}>
               <Image
@@ -215,8 +238,9 @@ export function LoginScreen() {
           <Text style={styles.footer}>
             Washington and Lee University
           </Text>
+          <View style={styles.spacer} />
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </WebContainer>
   );
 }
@@ -228,9 +252,11 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingVertical: 24,
+  },
+  spacer: {
+    flex: 1,
   },
   hero: {
     alignItems: 'center',
