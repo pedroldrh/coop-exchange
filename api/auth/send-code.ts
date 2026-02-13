@@ -77,7 +77,7 @@ export default async function handler(req: any, res: any) {
         html: `
           <div style="max-width:400px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="text-align:center;padding:24px 0;">
-              <img src="https://foodie-co.com/logo-192.png" alt="Foodie" width="64" height="64" style="border-radius:50%;" />
+              <img src="https://www.foodie-co.com/logo-192.png" alt="Foodie" width="64" height="64" style="border-radius:50%;" />
             </div>
             <h2 style="text-align:center;margin:0 0 8px;">Your Verification Code</h2>
             <p style="text-align:center;color:#6B7280;">Enter this code to sign in:</p>
