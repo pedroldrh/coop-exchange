@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -22,6 +22,15 @@ export function LoginScreen() {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+
+  // Scroll the focused input into view so the keyboard doesn't cover it
+  const scrollInputIntoView = useCallback((e: any) => {
+    if (Platform.OS === 'web' && e?.target?.scrollIntoView) {
+      setTimeout(() => {
+        e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  }, []);
 
   const onSendCode = async () => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -79,7 +88,7 @@ export function LoginScreen() {
     <WebContainer>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -124,6 +133,7 @@ export function LoginScreen() {
                   onChangeText={(text) => setCode(text.replace(/[^0-9]/g, ''))}
                   editable={!loading}
                   onSubmitEditing={onVerifyCode}
+                  onFocus={scrollInputIntoView}
                   textAlign="center"
                 />
               </View>
@@ -177,6 +187,7 @@ export function LoginScreen() {
                     onChangeText={setEmail}
                     editable={!loading}
                     onSubmitEditing={onSendCode}
+                    onFocus={scrollInputIntoView}
                   />
                 </View>
               </View>
