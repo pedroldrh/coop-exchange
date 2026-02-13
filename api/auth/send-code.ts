@@ -71,15 +71,20 @@ export default async function handler(req: any, res: any) {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Coop Exchange <notifications@foodie-co.com>',
+        from: 'Foodie <notifications@foodie-co.com>',
         to: [email],
         subject: 'Your Foodie verification code',
         html: `
-          <h2>Your Verification Code</h2>
-          <p>Enter this code to sign in:</p>
-          <p style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#F3F4F6;border-radius:8px;">${code}</p>
-          <p style="color:#6B7280;font-size:13px;">This code expires in 10 minutes.</p>
-          <p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>
+          <div style="max-width:400px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+            <div style="text-align:center;padding:24px 0;">
+              <img src="https://foodie-co.com/logo-192.png" alt="Foodie" width="64" height="64" style="border-radius:50%;" />
+            </div>
+            <h2 style="text-align:center;margin:0 0 8px;">Your Verification Code</h2>
+            <p style="text-align:center;color:#6B7280;">Enter this code to sign in:</p>
+            <p style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#F3F4F6;border-radius:8px;">${code}</p>
+            <p style="color:#6B7280;font-size:13px;text-align:center;">This code expires in 10 minutes.</p>
+            <p style="color:#6B7280;font-size:12px;text-align:center;">— Foodie</p>
+          </div>
         `,
       }),
     });
