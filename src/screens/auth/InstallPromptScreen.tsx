@@ -5,10 +5,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../../lib/theme';
 import { WebContainer } from '../../components/ui/WebContainer';
 
@@ -21,12 +19,7 @@ interface Props {
   onDismiss: () => void;
 }
 
-export function InstallPromptScreen({ onDismiss }: Props) {
-  const handleContinue = async () => {
-    await AsyncStorage.setItem('install_prompt_seen', 'true');
-    onDismiss();
-  };
-
+export function InstallPromptScreen({ onDismiss: _onDismiss }: Props) {
   return (
     <WebContainer>
       <ScrollView
@@ -41,16 +34,27 @@ export function InstallPromptScreen({ onDismiss }: Props) {
               resizeMode="contain"
             />
           </View>
-          <Text style={styles.title}>Get the Foodie App</Text>
+          <Text style={styles.title}>One More Step!</Text>
           <Text style={styles.subtitle}>
-            Add Foodie to your home screen for the best experience
+            You need to add Foodie to your home screen to use the app.
+            This is required to receive notifications when someone
+            requests or accepts your swipes.
+          </Text>
+        </View>
+
+        <View style={styles.warningBox}>
+          <Text style={styles.warningIcon}>{'\uD83D\uDD14'}</Text>
+          <Text style={styles.warningText}>
+            Without adding to home screen, you{' '}
+            <Text style={styles.bold}>won't get notifications</Text> and
+            may miss swipe requests.
           </Text>
         </View>
 
         <View style={styles.card}>
           {isIOS ? (
             <>
-              <Text style={styles.stepTitle}>How to install on iPhone:</Text>
+              <Text style={styles.stepTitle}>Follow these steps:</Text>
 
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>1</Text>
@@ -74,16 +78,25 @@ export function InstallPromptScreen({ onDismiss }: Props) {
                   Tap <Text style={styles.bold}>Add</Text> in the top right
                 </Text>
               </View>
+
+              <View style={styles.step}>
+                <Text style={styles.stepNumber}>4</Text>
+                <Text style={styles.stepText}>
+                  Open <Text style={styles.bold}>Foodie</Text> from your home
+                  screen and sign in
+                </Text>
+              </View>
             </>
           ) : (
             <>
-              <Text style={styles.stepTitle}>How to install:</Text>
+              <Text style={styles.stepTitle}>Follow these steps:</Text>
 
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>1</Text>
                 <Text style={styles.stepText}>
-                  Tap the <Text style={styles.bold}>three dots menu</Text> in
-                  the top right of Chrome
+                  Tap the{' '}
+                  <Text style={styles.bold}>three dots menu (...)</Text> at the
+                  bottom right of your screen
                 </Text>
               </View>
 
@@ -102,31 +115,17 @@ export function InstallPromptScreen({ onDismiss }: Props) {
                   Tap <Text style={styles.bold}>Install</Text> to confirm
                 </Text>
               </View>
+
+              <View style={styles.step}>
+                <Text style={styles.stepNumber}>4</Text>
+                <Text style={styles.stepText}>
+                  Open <Text style={styles.bold}>Foodie</Text> from your home
+                  screen and sign in
+                </Text>
+              </View>
             </>
           )}
-
-          <View style={styles.benefitRow}>
-            <Text style={styles.benefitIcon}>{'\uD83D\uDD14'}</Text>
-            <Text style={styles.benefitText}>
-              Get push notifications when someone requests your swipes
-            </Text>
-          </View>
-
-          <View style={styles.benefitRow}>
-            <Text style={styles.benefitIcon}>{'\u26A1'}</Text>
-            <Text style={styles.benefitText}>
-              Opens instantly like a real app — no browser bar
-            </Text>
-          </View>
         </View>
-
-        <TouchableOpacity
-          style={styles.continueButton}
-          onPress={handleContinue}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.continueButtonText}>Continue to App</Text>
-        </TouchableOpacity>
       </ScrollView>
     </WebContainer>
   );
@@ -141,7 +140,7 @@ const styles = StyleSheet.create({
   },
   hero: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
   },
   logoCircle: {
     width: 120,
@@ -173,6 +172,24 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF3C7',
+    borderRadius: theme.radius.lg,
+    padding: 14,
+    marginBottom: 20,
+    gap: 10,
+  },
+  warningIcon: {
+    fontSize: 24,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#92400E',
+    lineHeight: 20,
   },
   card: {
     backgroundColor: theme.colors.cardBg,
@@ -212,41 +229,5 @@ const styles = StyleSheet.create({
   },
   bold: {
     fontWeight: '700',
-  },
-  benefitRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.inputBorder,
-  },
-  benefitIcon: {
-    fontSize: 20,
-  },
-  benefitText: {
-    flex: 1,
-    fontSize: 13,
-    color: theme.colors.textSecondary,
-    lineHeight: 18,
-  },
-  continueButton: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: theme.radius.lg,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 24,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  continueButtonText: {
-    color: theme.colors.white,
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
 });
