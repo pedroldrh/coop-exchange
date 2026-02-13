@@ -394,17 +394,8 @@ export function OrderDetailScreen({ route }: Props) {
                 styles.mobileOrderButton,
                 pressed && styles.mobileOrderButtonPressed,
               ]}
-              onPress={async () => {
-                const deepLink = 'transactmobileorder://';
-                const supported = await Linking.canOpenURL(deepLink);
-                if (supported) {
-                  await Linking.openURL(deepLink);
-                } else {
-                  const storeUrl = Platform.OS === 'ios'
-                    ? 'https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529'
-                    : 'https://play.google.com/store/apps/details?id=com.blackboard.mobileorder';
-                  await Linking.openURL(storeUrl);
-                }
+              onPress={() => {
+                Linking.openURL('https://apps.apple.com/us/app/transact-mobile-ordering/id1494719529');
               }}
             >
               <Text style={styles.mobileOrderButtonText}>
