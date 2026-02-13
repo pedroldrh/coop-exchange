@@ -8,18 +8,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-
-const colors = {
-  primary: '#4F46E5',
-  danger: '#EF4444',
-  gray100: '#F3F4F6',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
+import { theme } from '../../lib/theme';
 
 interface InputProps {
   label?: string;
@@ -49,10 +38,12 @@ export function Input({
   const [isFocused, setIsFocused] = useState(false);
 
   const borderColor = error
-    ? colors.danger
+    ? theme.colors.danger
     : isFocused
-      ? colors.primary
-      : colors.gray300;
+      ? theme.colors.primary
+      : theme.colors.gray300;
+
+  const bgColor = isFocused ? theme.colors.primarySurface : theme.colors.white;
 
   return (
     <View style={styles.container}>
@@ -61,7 +52,7 @@ export function Input({
       <View
         style={[
           styles.inputWrapper,
-          { borderColor },
+          { borderColor, backgroundColor: bgColor },
           isFocused && styles.inputWrapperFocused,
           multiline && { height: 20 * numberOfLines + 24, alignItems: 'flex-start' as const },
         ]}
@@ -75,7 +66,7 @@ export function Input({
             multiline && styles.multilineInput,
           ]}
           placeholder={placeholder}
-          placeholderTextColor={colors.gray400}
+          placeholderTextColor={theme.colors.gray400}
           value={value}
           onChangeText={onChangeText}
           multiline={multiline}
@@ -95,20 +86,19 @@ export function Input({
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: theme.spacing.lg,
   },
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.gray700,
+    color: theme.colors.gray700,
     marginBottom: 6,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: colors.white,
+    borderRadius: theme.radius.md,
     paddingHorizontal: 12,
   },
   inputWrapperFocused: {
@@ -120,7 +110,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: colors.gray900,
+    color: theme.colors.gray900,
     paddingVertical: 10,
   },
   inputWithIcon: {
@@ -131,7 +121,7 @@ const styles = StyleSheet.create({
   },
   error: {
     fontSize: 12,
-    color: colors.danger,
+    color: theme.colors.danger,
     marginTop: 4,
   },
 });

@@ -6,11 +6,7 @@ import {
   type ViewStyle,
   type StyleProp,
 } from 'react-native';
-
-const colors = {
-  white: '#FFFFFF',
-  gray200: '#E5E7EB',
-};
+import { theme } from '../../lib/theme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -39,16 +35,14 @@ export function Card({ children, style, onPress }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.lg,
+    padding: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.surfaceBorder,
+    ...theme.shadow.md,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.92,
   },
 });

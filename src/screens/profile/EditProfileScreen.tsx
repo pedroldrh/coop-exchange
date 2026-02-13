@@ -17,7 +17,9 @@ import { useProfile, useUpdateProfile } from '../../hooks/use-profile';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
+import { WebContainer } from '../../components/ui/WebContainer';
 import { showAlert } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 
 const editProfileSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -26,20 +28,6 @@ const editProfileSchema = z.object({
 type FormValues = z.infer<typeof editProfileSchema>;
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'EditProfile'>;
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#818CF8',
-  gray50: '#F9FAFB',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 export function EditProfileScreen({ navigation }: Props) {
   const { refreshProfile } = useAuth();
@@ -58,7 +46,6 @@ export function EditProfileScreen({ navigation }: Props) {
     resolver: zodResolver(editProfileSchema) as any,
   });
 
-  // Pre-fill form when profile loads
   useEffect(() => {
     if (profile) {
       reset({
@@ -84,53 +71,55 @@ export function EditProfileScreen({ navigation }: Props) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <WebContainer>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
       >
-        <Text style={styles.heading}>Edit Profile</Text>
-        <Text style={styles.subheading}>Update your account information</Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.heading}>Edit Profile</Text>
+          <Text style={styles.subheading}>Update your account information</Text>
 
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="name"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Name *"
-                placeholder="Your display name"
-                value={value}
-                onChangeText={onChange}
-                error={errors.name?.message}
-              />
-            )}
-          />
-
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Save Changes"
-              onPress={handleSubmit(onSubmit)}
-              loading={updateProfile.isPending}
-              fullWidth
-              size="lg"
+          <View style={styles.form}>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Name *"
+                  placeholder="Your display name"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.name?.message}
+                />
+              )}
             />
+
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Save Changes"
+                onPress={handleSubmit(onSubmit)}
+                loading={updateProfile.isPending}
+                fullWidth
+                size="lg"
+              />
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.white,
   },
   scrollContent: {
     padding: 20,
@@ -139,12 +128,12 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 4,
   },
   subheading: {
     fontSize: 14,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     marginBottom: 28,
   },
   form: {

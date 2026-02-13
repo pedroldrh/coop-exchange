@@ -6,10 +6,7 @@ import { useAuth } from '../hooks/use-auth';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { MainTabs } from './MainTabs';
-
-/* ------------------------------------------------------------------ */
-/* Auth sub-stack (nested inside Root when no session)                  */
-/* ------------------------------------------------------------------ */
+import { theme } from '../lib/theme';
 
 import { AuthStackParamList } from '../types/navigation';
 
@@ -22,10 +19,6 @@ function AuthNavigator() {
     </AuthStack.Navigator>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Root stack                                                          */
-/* ------------------------------------------------------------------ */
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
@@ -42,7 +35,7 @@ export function RootNavigator() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F46E5" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -63,15 +56,11 @@ export function RootNavigator() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Styles                                                              */
-/* ------------------------------------------------------------------ */
-
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.gray50,
   },
 });

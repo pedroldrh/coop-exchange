@@ -5,21 +5,11 @@ import {
   ActivityIndicator,
   StyleSheet,
   View,
+  Platform,
   type ViewStyle,
   type TextStyle,
 } from 'react-native';
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#818CF8',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  gray200: '#E5E7EB',
-  gray400: '#9CA3AF',
-  gray800: '#1F2937',
-  white: '#FFFFFF',
-};
+import { theme } from '../../lib/theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -35,42 +25,51 @@ interface ButtonProps {
   icon?: React.ReactNode;
 }
 
-const variantStyles: Record<ButtonVariant, { container: ViewStyle; text: TextStyle; loaderColor: string }> = {
+const variantStyles: Record<ButtonVariant, {
+  container: ViewStyle;
+  pressedContainer: ViewStyle;
+  text: TextStyle;
+  loaderColor: string;
+}> = {
   primary: {
-    container: { backgroundColor: colors.primary },
-    text: { color: colors.white },
-    loaderColor: colors.white,
+    container: { backgroundColor: theme.colors.primary },
+    pressedContainer: { backgroundColor: theme.colors.primaryDark },
+    text: { color: theme.colors.white },
+    loaderColor: theme.colors.white,
   },
   secondary: {
-    container: { backgroundColor: colors.gray200 },
-    text: { color: colors.gray800 },
-    loaderColor: colors.gray800,
+    container: { backgroundColor: theme.colors.gray200 },
+    pressedContainer: { backgroundColor: theme.colors.gray300 },
+    text: { color: theme.colors.gray800 },
+    loaderColor: theme.colors.gray800,
   },
   danger: {
-    container: { backgroundColor: colors.danger },
-    text: { color: colors.white },
-    loaderColor: colors.white,
+    container: { backgroundColor: theme.colors.danger },
+    pressedContainer: { backgroundColor: '#DC2626' },
+    text: { color: theme.colors.white },
+    loaderColor: theme.colors.white,
   },
   ghost: {
     container: { backgroundColor: 'transparent' },
-    text: { color: colors.primary },
-    loaderColor: colors.primary,
+    pressedContainer: { backgroundColor: theme.colors.gray100 },
+    text: { color: theme.colors.primary },
+    loaderColor: theme.colors.primary,
   },
 };
 
 const sizeStyles: Record<ButtonSize, { container: ViewStyle; text: TextStyle; loaderSize: 'small' | 'large' }> = {
   sm: {
-    container: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 },
+    container: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: theme.radius.sm },
     text: { fontSize: 13, lineHeight: 18 },
     loaderSize: 'small',
   },
   md: {
-    container: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
+    container: { paddingVertical: 10, paddingHorizontal: 20, borderRadius: theme.radius.md },
     text: { fontSize: 15, lineHeight: 20 },
     loaderSize: 'small',
   },
   lg: {
-    container: { paddingVertical: 14, paddingHorizontal: 28, borderRadius: 10 },
+    container: { paddingVertical: 14, paddingHorizontal: 28, borderRadius: theme.radius.lg },
     text: { fontSize: 17, lineHeight: 22 },
     loaderSize: 'large',
   },
@@ -100,7 +99,8 @@ export function Button({
         sStyle.container,
         fullWidth && styles.fullWidth,
         isDisabled && styles.disabled,
-        pressed && !isDisabled && styles.pressed,
+        pressed && !isDisabled && vStyle.pressedContainer,
+        Platform.OS === 'web' && ({ cursor: isDisabled ? 'not-allowed' : 'pointer' } as any),
       ]}
     >
       <View style={styles.content}>
@@ -131,9 +131,6 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
-  pressed: {
-    opacity: 0.8,
-  },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,5 +141,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });

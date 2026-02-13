@@ -1,11 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Input } from './ui/Input';
-
-const colors = {
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-};
+import { theme } from '../lib/theme';
 
 interface ItemsInputProps {
   value: string;
@@ -63,15 +59,15 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 12,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     fontStyle: 'italic',
   },
   charCount: {
     fontSize: 12,
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   charCountWarning: {
-    color: colors.gray500,
+    color: theme.colors.gray500,
     fontWeight: '500',
   },
 });

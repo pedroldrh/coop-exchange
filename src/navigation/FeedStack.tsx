@@ -7,6 +7,7 @@ import { PostDetailScreen } from '../screens/posts/PostDetailScreen';
 import { CreatePostScreen } from '../screens/posts/CreatePostScreen';
 import { CreateRequestScreen } from '../screens/orders/CreateRequestScreen';
 import { OrderDetailScreen } from '../screens/orders/OrderDetailScreen';
+import { theme } from '../lib/theme';
 
 const Stack = createNativeStackNavigator<FeedStackParamList>();
 
@@ -14,7 +15,7 @@ export function FeedStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: '#4F46E5',
+        headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600' },
       }}
     >

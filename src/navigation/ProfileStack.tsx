@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ProfileStackParamList } from '../types/navigation';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
+import { theme } from '../lib/theme';
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();
 
@@ -9,7 +10,7 @@ export function ProfileStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerTintColor: '#4F46E5',
+        headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600' },
       }}
     >

@@ -2,17 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
-
-const colors = {
-  gold: '#F59E0B',
-  gray200: '#E5E7EB',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
+import { theme } from '../lib/theme';
 
 interface RatingModalProps {
   visible: boolean;
@@ -44,7 +34,6 @@ export function RatingModal({
   return (
     <Modal visible={visible} onClose={handleClose} title="Leave a Rating">
       <View style={styles.content}>
-        {/* Star selector */}
         <Text style={styles.prompt}>How was your experience?</Text>
         <View style={styles.starsRow}>
           {[1, 2, 3, 4, 5].map((star) => (
@@ -59,7 +48,7 @@ export function RatingModal({
                   styles.star,
                   {
                     color:
-                      star <= selectedStars ? colors.gold : colors.gray300,
+                      star <= selectedStars ? theme.colors.gold : theme.colors.gray300,
                   },
                 ]}
               >
@@ -75,21 +64,19 @@ export function RatingModal({
           </Text>
         )}
 
-        {/* Comment input */}
         <Text style={styles.commentLabel}>Comment (optional)</Text>
         <TextInput
           style={styles.commentInput}
           value={comment}
           onChangeText={setComment}
           placeholder="Share your experience..."
-          placeholderTextColor={colors.gray400}
+          placeholderTextColor={theme.colors.gray400}
           multiline
           numberOfLines={3}
           maxLength={500}
           textAlignVertical="top"
         />
 
-        {/* Submit button */}
         <View style={styles.submitRow}>
           <Button
             title="Submit Rating"
@@ -112,7 +99,7 @@ const styles = StyleSheet.create({
   prompt: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.gray700,
+    color: theme.colors.gray700,
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -129,14 +116,14 @@ const styles = StyleSheet.create({
   },
   ratingLabel: {
     fontSize: 14,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     fontWeight: '500',
     marginBottom: 20,
   },
   commentLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.gray700,
+    color: theme.colors.gray700,
     alignSelf: 'flex-start',
     marginBottom: 6,
   },
@@ -144,13 +131,13 @@ const styles = StyleSheet.create({
     width: '100%',
     minHeight: 80,
     borderWidth: 1,
-    borderColor: colors.gray300,
-    borderRadius: 8,
+    borderColor: theme.colors.gray300,
+    borderRadius: theme.radius.md,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 15,
-    color: colors.gray900,
-    backgroundColor: colors.white,
+    color: theme.colors.gray900,
+    backgroundColor: theme.colors.white,
     marginBottom: 20,
   },
   submitRow: {

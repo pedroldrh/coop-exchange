@@ -13,20 +13,13 @@ import { useCreateRequest } from '../../hooks/use-requests';
 import { MenuPicker } from '../../components/MenuPicker';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
+import { WebContainer } from '../../components/ui/WebContainer';
 import { CAFE_77_MENU } from '../../lib/menu';
 import { SWIPE_VALUE } from '../../lib/constants';
 import { showAlert } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'CreateRequest'>;
-
-const colors = {
-  primary: '#4F46E5',
-  gray50: '#F9FAFB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 export function CreateRequestScreen({ route, navigation }: Props) {
   const { postId, sellerId } = route.params;
@@ -97,58 +90,60 @@ export function CreateRequestScreen({ route, navigation }: Props) {
   ]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={100}
-    >
-      <View style={styles.content}>
-        <Text style={styles.heading}>Pick Your Food</Text>
-        <Text style={styles.subheading}>
-          Choose items up to ${SWIPE_VALUE.toFixed(2)}
-        </Text>
+    <WebContainer>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={100}
+      >
+        <View style={styles.content}>
+          <Text style={styles.heading}>Pick Your Food</Text>
+          <Text style={styles.subheading}>
+            Choose items up to ${SWIPE_VALUE.toFixed(2)}
+          </Text>
 
-        <View style={styles.menuContainer}>
-          <MenuPicker
-            selections={selections}
-            onSelectionsChange={setSelections}
-          />
-        </View>
+          <View style={styles.menuContainer}>
+            <MenuPicker
+              selections={selections}
+              onSelectionsChange={setSelections}
+            />
+          </View>
 
-        <View style={styles.instructionsContainer}>
-          <Input
-            label="Special Instructions"
-            placeholder="e.g. no pickles, extra sauce"
-            value={instructions}
-            onChangeText={setInstructions}
-            multiline
-            numberOfLines={2}
-          />
-        </View>
+          <View style={styles.instructionsContainer}>
+            <Input
+              label="Special Instructions"
+              placeholder="e.g. no pickles, extra sauce"
+              value={instructions}
+              onChangeText={setInstructions}
+              multiline
+              numberOfLines={2}
+            />
+          </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title={
-              hasItems
-                ? `Send Request — $${total.toFixed(2)}`
-                : 'Select items to continue'
-            }
-            onPress={handleSubmit}
-            loading={createRequest.isPending}
-            fullWidth
-            size="lg"
-            disabled={!hasItems}
-          />
+          <View style={styles.buttonContainer}>
+            <Button
+              title={
+                hasItems
+                  ? `Send Request \u2014 $${total.toFixed(2)}`
+                  : 'Select items to continue'
+              }
+              onPress={handleSubmit}
+              loading={createRequest.isPending}
+              fullWidth
+              size="lg"
+              disabled={!hasItems}
+            />
+          </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.white,
   },
   content: {
     flex: 1,
@@ -158,12 +153,12 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 4,
   },
   subheading: {
     fontSize: 14,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     marginBottom: 12,
   },
   menuContainer: {

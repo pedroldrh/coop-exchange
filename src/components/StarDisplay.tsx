@@ -1,11 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
-const colors = {
-  gold: '#F59E0B',
-  gray300: '#D1D5DB',
-  gray700: '#374151',
-};
+import { theme } from '../lib/theme';
 
 interface StarDisplayProps {
   rating: number;
@@ -22,11 +17,11 @@ export function StarDisplay({
 
   for (let i = 1; i <= 5; i++) {
     if (rating >= i) {
-      stars.push('\u2605'); // filled star
+      stars.push('\u2605');
     } else if (rating >= i - 0.5) {
-      stars.push('\u2605'); // half-star rendered as filled (Unicode has no half-star glyph)
+      stars.push('\u2605');
     } else {
-      stars.push('\u2606'); // empty star
+      stars.push('\u2606');
     }
   }
 
@@ -40,7 +35,7 @@ export function StarDisplay({
             style={[
               {
                 fontSize: size,
-                color: isFilled ? colors.gold : colors.gray300,
+                color: isFilled ? theme.colors.gold : theme.colors.gray300,
                 marginRight: 1,
               },
             ]}
@@ -65,7 +60,7 @@ const styles = StyleSheet.create({
   },
   value: {
     marginLeft: 4,
-    color: colors.gray700,
+    color: theme.colors.gray700,
     fontWeight: '500',
   },
 });

@@ -6,6 +6,7 @@ import { StarDisplay } from './StarDisplay';
 import { formatRelativeTime } from '../lib/utils';
 import { getTopBadge } from '../lib/badges';
 import { Avatar } from './Avatar';
+import { theme } from '../lib/theme';
 import type { Post, Profile } from '../types/database';
 
 type PostWithSeller = Post & {
@@ -17,63 +18,56 @@ interface PostCardProps {
   onPress: () => void;
 }
 
-const colors = {
-  primary: '#4F46E5',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-};
-
 export function PostCard({ post, onPress }: PostCardProps) {
   const swipes = post.capacity_remaining;
   const swipeColor =
     swipes === 0
-      ? colors.danger
+      ? theme.colors.danger
       : swipes <= 2
-        ? colors.warning
-        : colors.success;
+        ? theme.colors.warning
+        : theme.colors.success;
   const topBadge = getTopBadge(post.seller.completed_count);
 
   return (
     <Card onPress={onPress} style={styles.card}>
-      {/* Header: seller info + time */}
-      <View style={styles.header}>
-        <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={36} />
-        <View style={styles.sellerInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.sellerName}>
-              {post.seller.name ?? 'Anonymous'}
-            </Text>
-            {topBadge && (
-              <View style={[styles.topBadge, { backgroundColor: topBadge.color + '18' }]}>
-                <Text style={styles.topBadgeIcon}>{topBadge.icon}</Text>
-                <Text style={[styles.topBadgeLabel, { color: topBadge.color }]}>
-                  {topBadge.label}
-                </Text>
-              </View>
-            )}
+      <View style={[styles.accentBar, { backgroundColor: swipeColor }]} />
+      <View style={styles.cardContent}>
+        {/* Header: seller info + time */}
+        <View style={styles.header}>
+          <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={36} />
+          <View style={styles.sellerInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.sellerName}>
+                {post.seller.name ?? 'Anonymous'}
+              </Text>
+              {topBadge && (
+                <View style={[styles.topBadge, { backgroundColor: topBadge.color + '18' }]}>
+                  <Text style={styles.topBadgeIcon}>{topBadge.icon}</Text>
+                  <Text style={[styles.topBadgeLabel, { color: topBadge.color }]}>
+                    {topBadge.label}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <StarDisplay rating={post.seller.rating_avg} size={14} />
           </View>
-          <StarDisplay rating={post.seller.rating_avg} size={14} />
+          <Text style={styles.timeAgo}>{formatRelativeTime(post.created_at)}</Text>
         </View>
-        <Text style={styles.timeAgo}>{formatRelativeTime(post.created_at)}</Text>
-      </View>
 
-      {/* Swipe count + location */}
-      <View style={styles.meta}>
-        <Badge
-          label={swipes === 0 ? 'No swipes left' : `${swipes} swipe${swipes === 1 ? '' : 's'} available`}
-          color={swipeColor}
-          size="sm"
-        />
-      </View>
+        {/* Swipe count + location */}
+        <View style={styles.meta}>
+          <Badge
+            label={swipes === 0 ? 'No swipes left' : `${swipes} swipe${swipes === 1 ? '' : 's'} available`}
+            color={swipeColor}
+            size="sm"
+            variant="soft"
+          />
+        </View>
 
-      <Text style={styles.location} numberOfLines={1}>
-        Cafe 77
-      </Text>
+        <Text style={styles.location} numberOfLines={1}>
+          Cafe 77
+        </Text>
+      </View>
     </Card>
   );
 }
@@ -81,11 +75,23 @@ export function PostCard({ post, onPress }: PostCardProps) {
 const styles = StyleSheet.create({
   card: {
     marginBottom: 12,
+    flexDirection: 'row',
+    padding: 0,
+    overflow: 'hidden',
+  },
+  accentBar: {
+    width: 3,
+    borderTopLeftRadius: theme.radius.lg,
+    borderBottomLeftRadius: theme.radius.lg,
+  },
+  cardContent: {
+    flex: 1,
+    padding: theme.spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: 10,
     gap: 10,
   },
   sellerInfo: {
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   sellerName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
   },
   topBadge: {
     flexDirection: 'row',
@@ -120,7 +126,7 @@ const styles = StyleSheet.create({
   },
   timeAgo: {
     fontSize: 12,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     marginLeft: 8,
   },
   meta: {
@@ -131,7 +137,7 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 13,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     marginBottom: 4,
   },
 });

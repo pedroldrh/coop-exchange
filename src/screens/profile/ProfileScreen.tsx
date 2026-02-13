@@ -14,31 +14,15 @@ import { useMyPosts } from '../../hooks/use-posts';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
+import { WebContainer } from '../../components/ui/WebContainer';
 import { StarDisplay } from '../../components/StarDisplay';
 import { PostCard } from '../../components/PostCard';
 import { BadgeDisplay } from '../../components/BadgeDisplay';
 import { Avatar } from '../../components/Avatar';
 import { showAlert, showConfirm } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#818CF8',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  gray50: '#F9FAFB',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray600: '#4B5563',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 export function ProfileScreen({ navigation }: Props) {
   const { user, signOut } = useAuth();
@@ -72,162 +56,159 @@ export function ProfileScreen({ navigation }: Props) {
       : 'Member';
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Profile Header */}
-      <View style={styles.profileHeader}>
-        <View style={{ marginBottom: 12 }}>
-          <Avatar name={profile.name} avatarUrl={profile.avatar_url} size={80} />
+    <WebContainer>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Colored background strip */}
+        <View style={styles.profileHeaderBg}>
+          <View style={styles.profileHeader}>
+            <View style={{ marginBottom: 12 }}>
+              <Avatar name={profile.name} avatarUrl={profile.avatar_url} size={80} />
+            </View>
+            <Text style={styles.userName}>{profile.name ?? 'Anonymous'}</Text>
+            <Text style={styles.userEmail}>{profile.email}</Text>
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleText}>{roleLabel}</Text>
+            </View>
+          </View>
         </View>
-        <Text style={styles.userName}>{profile.name ?? 'Anonymous'}</Text>
-        <Text style={styles.userEmail}>{profile.email}</Text>
-        <View style={styles.roleBadge}>
-          <Text style={styles.roleText}>{roleLabel}</Text>
-        </View>
-      </View>
 
-      {/* Stats Card */}
-      <Card style={styles.statsCard}>
-        <Text style={styles.sectionTitle}>Stats</Text>
-        <View style={styles.statsGrid}>
-          <View style={styles.statItem}>
+        {/* Stats mini-cards */}
+        <View style={styles.statsRow}>
+          <View style={[styles.statMiniCard, { backgroundColor: theme.colors.warningLight }]}>
             <Text style={styles.statLabel}>Rating</Text>
             <StarDisplay
               rating={profile.rating_avg}
-              size={18}
+              size={16}
               showValue
             />
           </View>
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Swipes Shared</Text>
-            <Text style={[styles.statValue, styles.statPrimary]}>
+          <View style={[styles.statMiniCard, { backgroundColor: theme.colors.primarySurface }]}>
+            <Text style={styles.statLabel}>Swipes</Text>
+            <Text style={[styles.statValue, { color: theme.colors.primary }]}>
               {profile.completed_count}
             </Text>
           </View>
-          <View style={styles.statItem}>
+          <View style={[styles.statMiniCard, { backgroundColor: theme.colors.dangerLight }]}>
             <Text style={styles.statLabel}>Cancelled</Text>
-            <Text style={[styles.statValue, styles.statDanger]}>
+            <Text style={[styles.statValue, { color: theme.colors.danger }]}>
               {profile.cancel_count}
             </Text>
           </View>
         </View>
-      </Card>
 
-      {/* Badges */}
-      <Card style={styles.badgesCard}>
-        <Text style={styles.sectionTitle}>Badges</Text>
-        <BadgeDisplay completedCount={profile.completed_count} />
-      </Card>
+        {/* Badges */}
+        <Card style={styles.badgesCard}>
+          <Text style={styles.sectionTitle}>Badges</Text>
+          <BadgeDisplay completedCount={profile.completed_count} />
+        </Card>
 
-      {/* My Swipe Shares */}
-      <View style={styles.postsSection}>
-        <View style={styles.postsSectionHeader}>
-          <Text style={styles.sectionTitle}>My Swipe Shares</Text>
-          {hasMorePosts && (
-            <Pressable onPress={() => {}}>
-              <Text style={styles.seeAllText}>See all</Text>
-            </Pressable>
+        {/* My Swipe Shares */}
+        <View style={styles.postsSection}>
+          <View style={styles.postsSectionHeader}>
+            <Text style={styles.sectionTitle}>My Swipe Shares</Text>
+            {hasMorePosts && (
+              <Pressable onPress={() => {}}>
+                <Text style={styles.seeAllText}>See all</Text>
+              </Pressable>
+            )}
+          </View>
+
+          {displayPosts.length > 0 ? (
+            displayPosts.map((post) => (
+              <PostCard key={post.id} post={post} onPress={() => {}} />
+            ))
+          ) : (
+            <Text style={styles.emptyText}>No posts yet</Text>
           )}
         </View>
 
-        {displayPosts.length > 0 ? (
-          displayPosts.map((post) => (
-            <PostCard key={post.id} post={post} onPress={() => {}} />
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No posts yet</Text>
-        )}
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actions}>
-        <Button
-          title="Sign Out"
-          onPress={handleSignOut}
-          variant="ghost"
-          fullWidth
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.actions}>
+          <Button
+            title="Sign Out"
+            onPress={handleSignOut}
+            variant="ghost"
+            fullWidth
+          />
+        </View>
+      </ScrollView>
+    </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: theme.colors.gray50,
   },
   contentContainer: {
     paddingBottom: 40,
+  },
+  profileHeaderBg: {
+    backgroundColor: theme.colors.primarySurface,
   },
   profileHeader: {
     alignItems: 'center',
     paddingVertical: 32,
     paddingHorizontal: 16,
-    backgroundColor: colors.white,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
   },
   userName: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 2,
   },
   userEmail: {
     fontSize: 14,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     marginBottom: 8,
   },
   roleBadge: {
     paddingVertical: 4,
     paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: colors.primaryLight,
+    borderRadius: theme.radius.full,
+    backgroundColor: theme.colors.primaryLight,
   },
   roleText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.white,
   },
-  statsCard: {
-    margin: 16,
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.gray900,
-    marginBottom: 12,
-  },
-  statsGrid: {
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 10,
+    paddingHorizontal: 16,
+    marginTop: -16,
+    marginBottom: 12,
   },
-  statItem: {
+  statMiniCard: {
+    flex: 1,
     alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: theme.radius.lg,
     gap: 4,
+    ...theme.shadow.sm,
   },
   statLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.gray400,
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.colors.gray500,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
   },
   statValue: {
     fontSize: 22,
     fontWeight: '700',
-    color: colors.gray900,
   },
-  statDanger: {
-    color: colors.danger,
-  },
-  statPrimary: {
-    color: colors.primary,
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.gray900,
+    marginBottom: 12,
   },
   badgesCard: {
     marginHorizontal: 16,
@@ -246,19 +227,16 @@ const styles = StyleSheet.create({
   seeAllText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.primary,
+    color: theme.colors.primary,
   },
   emptyText: {
     fontSize: 14,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     textAlign: 'center',
     paddingVertical: 20,
   },
   actions: {
     paddingHorizontal: 16,
     marginTop: 8,
-  },
-  actionGap: {
-    height: 10,
   },
 });

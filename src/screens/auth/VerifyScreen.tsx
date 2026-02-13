@@ -12,10 +12,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
 import { showAlert } from '../../lib/utils';
-
-/* ------------------------------------------------------------------ */
-/* Screen                                                              */
-/* ------------------------------------------------------------------ */
+import { theme } from '../../lib/theme';
+import { WebContainer } from '../../components/ui/WebContainer';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Verify'>;
 
@@ -38,9 +36,7 @@ export function VerifyScreen({ route }: Props) {
     setError(null);
     setVerifying(true);
     try {
-      // OTP verification no longer used — password auth instead
       void email; void trimmed;
-      // Navigation happens automatically via AuthProvider session listener
     } catch (err: any) {
       setError(err.message ?? 'Invalid code. Please try again.');
     } finally {
@@ -52,7 +48,6 @@ export function VerifyScreen({ route }: Props) {
     setResending(true);
     setError(null);
     try {
-      // Resend no longer needed with password auth
       void email;
       showAlert('Code Sent', `A new code has been sent to ${email}.`);
     } catch (err: any) {
@@ -63,83 +58,69 @@ export function VerifyScreen({ route }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <View style={styles.inner}>
-        {/* ---- Header ---- */}
-        <Text style={styles.title}>Check Your Email</Text>
-        <Text style={styles.subtitle}>
-          Enter the code sent to{' '}
-          <Text style={styles.emailHighlight}>{email}</Text>
-        </Text>
+    <WebContainer>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.inner}>
+          <Text style={styles.title}>Check Your Email</Text>
+          <Text style={styles.subtitle}>
+            Enter the code sent to{' '}
+            <Text style={styles.emailHighlight}>{email}</Text>
+          </Text>
 
-        {/* ---- Code input ---- */}
-        <View style={styles.fieldWrapper}>
-          <TextInput
-            style={[styles.input, error ? styles.inputError : undefined]}
-            placeholder="000000"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="number-pad"
-            maxLength={6}
-            autoFocus
-            value={code}
-            onChangeText={(text) => {
-              setCode(text.replace(/[^0-9]/g, ''));
-              if (error) setError(null);
-            }}
-            editable={!verifying}
-            returnKeyType="done"
-            onSubmitEditing={handleVerify}
-            textAlign="center"
-          />
-          {error && <Text style={styles.errorText}>{error}</Text>}
+          <View style={styles.fieldWrapper}>
+            <TextInput
+              style={[styles.input, error ? styles.inputError : undefined]}
+              placeholder="000000"
+              placeholderTextColor={theme.colors.gray400}
+              keyboardType="number-pad"
+              maxLength={6}
+              autoFocus
+              value={code}
+              onChangeText={(text) => {
+                setCode(text.replace(/[^0-9]/g, ''));
+                if (error) setError(null);
+              }}
+              editable={!verifying}
+              returnKeyType="done"
+              onSubmitEditing={handleVerify}
+              textAlign="center"
+            />
+            {error && <Text style={styles.errorText}>{error}</Text>}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.button, verifying && styles.buttonDisabled]}
+            onPress={handleVerify}
+            activeOpacity={0.8}
+            disabled={verifying}
+          >
+            <Text style={styles.buttonText}>
+              {verifying ? 'Verifying...' : 'Verify'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleResend}
+            disabled={resending}
+            style={styles.resendWrapper}
+          >
+            <Text style={styles.resendText}>
+              {resending ? 'Sending...' : "Didn't get a code? Resend"}
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        {/* ---- Verify button ---- */}
-        <TouchableOpacity
-          style={[styles.button, verifying && styles.buttonDisabled]}
-          onPress={handleVerify}
-          activeOpacity={0.8}
-          disabled={verifying}
-        >
-          <Text style={styles.buttonText}>
-            {verifying ? 'Verifying...' : 'Verify'}
-          </Text>
-        </TouchableOpacity>
-
-        {/* ---- Resend link ---- */}
-        <TouchableOpacity
-          onPress={handleResend}
-          disabled={resending}
-          style={styles.resendWrapper}
-        >
-          <Text style={styles.resendText}>
-            {resending ? 'Sending...' : "Didn't get a code? Resend"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </WebContainer>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Styles                                                              */
-/* ------------------------------------------------------------------ */
-
-const PRIMARY = '#4F46E5';
-const GRAY50 = '#F9FAFB';
-const GRAY100 = '#F3F4F6';
-const GRAY400 = '#9CA3AF';
-const GRAY700 = '#374151';
-const GRAY900 = '#111827';
-const RED500 = '#EF4444';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: GRAY50,
+    backgroundColor: theme.colors.gray50,
   },
   inner: {
     flex: 1,
@@ -149,48 +130,48 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: GRAY900,
+    color: theme.colors.gray900,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: GRAY400,
+    color: theme.colors.gray400,
     textAlign: 'center',
     marginBottom: 40,
     lineHeight: 22,
   },
   emailHighlight: {
-    color: PRIMARY,
+    color: theme.colors.primary,
     fontWeight: '600',
   },
   fieldWrapper: {
     marginBottom: 24,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     borderWidth: 1,
-    borderColor: GRAY100,
-    borderRadius: 10,
+    borderColor: theme.colors.gray100,
+    borderRadius: theme.radius.lg,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 28,
     fontWeight: '600',
     letterSpacing: 12,
-    color: GRAY900,
+    color: theme.colors.gray900,
   },
   inputError: {
-    borderColor: RED500,
+    borderColor: theme.colors.danger,
   },
   errorText: {
     marginTop: 8,
     fontSize: 13,
-    color: RED500,
+    color: theme.colors.danger,
     textAlign: 'center',
   },
   button: {
-    backgroundColor: PRIMARY,
-    borderRadius: 10,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
     paddingVertical: 16,
     alignItems: 'center',
   },
@@ -198,7 +179,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: theme.colors.white,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -208,7 +189,7 @@ const styles = StyleSheet.create({
   },
   resendText: {
     fontSize: 14,
-    color: PRIMARY,
+    color: theme.colors.primary,
     fontWeight: '500',
   },
 });

@@ -6,14 +6,10 @@ import {
   Pressable,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native';
-
-const colors = {
-  gray500: '#6B7280',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
+import { theme } from '../../lib/theme';
 
 interface ModalProps {
   visible: boolean;
@@ -46,7 +42,7 @@ export function Modal({ visible, onClose, title, children }: ModalProps) {
                   pressed && styles.closeButtonPressed,
                 ]}
               >
-                <Text style={styles.closeText}>✕</Text>
+                <Text style={styles.closeText}>{'\u2715'}</Text>
               </Pressable>
             </View>
 
@@ -72,14 +68,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: theme.spacing.xxl,
+    ...(Platform.OS === 'web'
+      ? ({ backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)' } as any)
+      : {}),
   },
   card: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.xl,
     width: '100%',
+    maxWidth: 400,
     maxHeight: '80%',
     overflow: 'hidden',
+    ...theme.shadow.lg,
   },
   header: {
     flexDirection: 'row',
@@ -89,12 +90,12 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.colors.gray200,
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     flex: 1,
     marginRight: 12,
   },
@@ -102,16 +103,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: theme.colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeButtonPressed: {
-    backgroundColor: '#E5E7EB',
+    backgroundColor: theme.colors.gray200,
   },
   closeText: {
     fontSize: 16,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     fontWeight: '500',
   },
   body: {

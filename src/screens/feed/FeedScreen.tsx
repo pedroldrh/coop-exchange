@@ -16,22 +16,14 @@ import { usePosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
 import { Loading } from '../../components/ui/Loading';
+import { WebContainer } from '../../components/ui/WebContainer';
 import { useAvatarGeneration } from '../../hooks/use-avatar-generation';
 import { showAlert } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 import type { Post, Profile } from '../../types/database';
 
 type PostWithSeller = Post & { seller: Profile };
 type Props = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#EEF2FF',
-  gray50: '#F9FAFB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 const SWIPE_OPTIONS = [1, 2, 3, 4, 5];
 
@@ -47,7 +39,6 @@ export function FeedScreen({ navigation }: Props) {
 
   const handleFabPress = useCallback(() => {
     if (!fabExpanded.current) {
-      // First tap: expand to show label
       fabExpanded.current = true;
       Animated.parallel([
         Animated.spring(fabWidth, {
@@ -63,7 +54,6 @@ export function FeedScreen({ navigation }: Props) {
         }),
       ]).start();
     } else {
-      // Second tap: open modal and collapse
       setShowSwipeModal(true);
       fabExpanded.current = false;
       Animated.parallel([
@@ -84,10 +74,8 @@ export function FeedScreen({ navigation }: Props) {
   const handlePostPress = useCallback(
     (post: PostWithSeller) => {
       if (user?.id === post.seller_id) {
-        // Own post — see details and incoming requests
         navigation.navigate('PostDetail', { postId: post.id });
       } else {
-        // Someone else's post — go straight to menu picker
         navigation.navigate('CreateRequest', {
           postId: post.id,
           sellerId: post.seller_id,
@@ -126,9 +114,9 @@ export function FeedScreen({ navigation }: Props) {
     if (isLoading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyIcon}>📦</Text>
+        <Text style={styles.emptyIcon}>{'\uD83D\uDCE6'}</Text>
         <Text style={styles.emptyTitle}>No swipes available right now</Text>
-        <Text style={styles.emptySubtitle}>Check back soon!</Text>
+        <Text style={styles.emptySubtitle}>Pull down to refresh or check back soon!</Text>
       </View>
     );
   }, [isLoading]);
@@ -140,78 +128,79 @@ export function FeedScreen({ navigation }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        contentContainerStyle={styles.listContent}
-        ListHeaderComponent={<Leaderboard />}
-        ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            tintColor={colors.primary}
-          />
-        }
-        showsVerticalScrollIndicator={false}
-      />
+    <WebContainer>
+      <View style={styles.container}>
+        <FlatList
+          data={posts}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.listContent}
+          ListHeaderComponent={<Leaderboard />}
+          ListEmptyComponent={renderEmpty}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={theme.colors.primary}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        />
 
-      {user && (
-        <Pressable onPress={handleFabPress}>
-          <Animated.View style={[styles.fab, { width: fabWidth }]}>
-            <Text style={styles.fabIcon}>❤️</Text>
-            <Animated.Text style={[styles.fabLabel, { opacity: textOpacity }]}>
-              Give out swipes!
-            </Animated.Text>
-          </Animated.View>
-        </Pressable>
-      )}
-
-      {/* Swipe Count Modal */}
-      <Modal
-        visible={showSwipeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSwipeModal(false)}
-        statusBarTranslucent
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setShowSwipeModal(false)}
-        >
-          <Pressable style={styles.modalCard} onPress={() => {}}>
-            <Text style={styles.modalTitle}>
-              How many swipes do you want to share?
-            </Text>
-            <View style={styles.swipeOptions}>
-              {SWIPE_OPTIONS.map((num) => (
-                <Pressable
-                  key={num}
-                  style={({ pressed }) => [
-                    styles.swipeButton,
-                    pressed && styles.swipeButtonPressed,
-                  ]}
-                  onPress={() => handleSwipeSelect(num)}
-                  disabled={createPost.isPending}
-                >
-                  <Text style={styles.swipeButtonText}>{num}</Text>
-                </Pressable>
-              ))}
-            </View>
-            <Text style={styles.modalHint}>Tap a number to post</Text>
+        {user && (
+          <Pressable onPress={handleFabPress}>
+            <Animated.View style={[styles.fab, { width: fabWidth, maxWidth: theme.layout.maxContentWidth - 48 }]}>
+              <Text style={styles.fabIcon}>{'\u2764\uFE0F'}</Text>
+              <Animated.Text style={[styles.fabLabel, { opacity: textOpacity }]}>
+                Give out swipes!
+              </Animated.Text>
+            </Animated.View>
           </Pressable>
-        </Pressable>
-      </Modal>
-    </View>
+        )}
+
+        <Modal
+          visible={showSwipeModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSwipeModal(false)}
+          statusBarTranslucent
+        >
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={() => setShowSwipeModal(false)}
+          >
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <Text style={styles.modalTitle}>
+                How many swipes do you want to share?
+              </Text>
+              <View style={styles.swipeOptions}>
+                {SWIPE_OPTIONS.map((num) => (
+                  <Pressable
+                    key={num}
+                    style={({ pressed }) => [
+                      styles.swipeButton,
+                      pressed && styles.swipeButtonPressed,
+                    ]}
+                    onPress={() => handleSwipeSelect(num)}
+                    disabled={createPost.isPending}
+                  >
+                    <Text style={styles.swipeButtonText}>{num}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <Text style={styles.modalHint}>Tap a number to post</Text>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </View>
+    </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: theme.colors.gray50,
   },
   listContent: {
     padding: 16,
@@ -230,12 +219,13 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 4,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: colors.gray500,
+    color: theme.colors.gray500,
+    textAlign: 'center',
   },
   fab: {
     position: 'absolute',
@@ -243,28 +233,23 @@ const styles = StyleSheet.create({
     right: 24,
     height: 56,
     borderRadius: 28,
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 6,
+    ...theme.shadow.lg,
   },
   fabIcon: {
     fontSize: 24,
   },
   fabLabel: {
     fontSize: 16,
-    color: colors.white,
+    color: theme.colors.white,
     fontWeight: '600',
     marginLeft: 8,
     marginRight: 16,
   },
-  // Modal styles
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -273,16 +258,18 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   modalCard: {
-    backgroundColor: colors.white,
-    borderRadius: 20,
+    backgroundColor: theme.colors.white,
+    borderRadius: theme.radius.xxl,
     padding: 28,
     width: '100%',
+    maxWidth: 400,
     alignItems: 'center',
+    ...theme.shadow.lg,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -295,22 +282,22 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: theme.colors.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: theme.colors.primary,
   },
   swipeButtonPressed: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
   },
   swipeButtonText: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.primary,
+    color: theme.colors.primary,
   },
   modalHint: {
     fontSize: 13,
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
 });

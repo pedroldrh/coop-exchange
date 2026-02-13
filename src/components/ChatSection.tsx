@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,7 @@ import {
 } from 'react-native';
 import { useMessages, useSendMessage, useMessagesRealtime } from '../hooks/use-messages';
 import { formatRelativeTime } from '../lib/utils';
-
-const colors = {
-  primary: '#4F46E5',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
+import { theme } from '../lib/theme';
 
 interface ChatSectionProps {
   requestId: string;
@@ -36,7 +25,6 @@ export function ChatSection({ requestId, currentUserId }: ChatSectionProps) {
   const { data: messages = [], isLoading } = useMessages(requestId);
   const sendMessage = useSendMessage();
 
-  // Subscribe to real-time message inserts
   useMessagesRealtime(requestId);
 
   const handleSend = useCallback(() => {
@@ -52,6 +40,15 @@ export function ChatSection({ requestId, currentUserId }: ChatSectionProps) {
       }
     );
   }, [messageText, requestId, sendMessage]);
+
+  // On web: reverse data instead of using inverted prop (known RN Web bug)
+  const isWeb = Platform.OS === 'web';
+  const displayMessages = useMemo(() => {
+    if (isWeb) {
+      return [...messages].reverse();
+    }
+    return messages;
+  }, [messages, isWeb]);
 
   const renderMessage = useCallback(
     ({ item }: { item: (typeof messages)[number] }) => {
@@ -105,19 +102,21 @@ export function ChatSection({ requestId, currentUserId }: ChatSectionProps) {
     >
       <FlatList
         ref={flatListRef}
-        data={messages}
+        data={displayMessages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        inverted
+        inverted={!isWeb}
         style={styles.list}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={() => {
-          flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+          if (!isWeb) {
+            flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+          }
         }}
         ListEmptyComponent={
           isLoading ? null : (
-            <View style={styles.emptyContainer}>
+            <View style={[styles.emptyContainer, !isWeb && { transform: [{ scaleY: -1 }] }]}>
               <Text style={styles.emptyText}>
                 No messages yet. Start the conversation!
               </Text>
@@ -133,7 +132,7 @@ export function ChatSection({ requestId, currentUserId }: ChatSectionProps) {
           value={messageText}
           onChangeText={setMessageText}
           placeholder="Type a message..."
-          placeholderTextColor={colors.gray400}
+          placeholderTextColor={theme.colors.gray400}
           multiline
           maxLength={1000}
         />
@@ -182,17 +181,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   bubbleOwn: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
     borderBottomRightRadius: 4,
   },
   bubbleOther: {
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     borderBottomLeftRadius: 4,
   },
   senderName: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.gray500,
+    color: theme.colors.gray500,
     marginBottom: 2,
   },
   messageText: {
@@ -200,10 +199,10 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   messageTextOwn: {
-    color: colors.white,
+    color: theme.colors.white,
   },
   messageTextOther: {
-    color: colors.gray900,
+    color: theme.colors.gray900,
   },
   messageTime: {
     fontSize: 10,
@@ -214,18 +213,17 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   messageTimeOther: {
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 40,
-    transform: [{ scaleY: -1 }],
   },
   emptyText: {
     fontSize: 14,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     textAlign: 'center',
   },
   inputRow: {
@@ -234,23 +232,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
-    backgroundColor: colors.white,
+    borderTopColor: theme.colors.gray200,
+    backgroundColor: theme.colors.white,
   },
   textInput: {
     flex: 1,
     minHeight: 40,
     maxHeight: 100,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
     borderRadius: 20,
     paddingHorizontal: 18,
     paddingVertical: 10,
@@ -264,7 +262,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   sendButtonText: {
-    color: colors.white,
+    color: theme.colors.white,
     fontSize: 15,
     fontWeight: '600',
   },

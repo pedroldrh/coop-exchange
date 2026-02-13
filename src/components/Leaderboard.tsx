@@ -1,19 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, Animated, Easing, StyleSheet, Platform } from 'react-native';
 import { useLeaderboard } from '../hooks/use-leaderboard';
 import { getTopBadge } from '../lib/badges';
+import { theme } from '../lib/theme';
 
-const colors = {
-  primary: '#4F46E5',
-  gray200: '#E5E7EB',
-  gray400: '#9CA3AF',
-  gray800: '#1F2937',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
-
-const ITEM_WIDTH = 160; // estimated width per ticker entry
-const SCROLL_SPEED = 40; // pixels per second
+const ITEM_WIDTH = 160;
+const SCROLL_SPEED = 40;
 
 export function Leaderboard() {
   const { data: leaders } = useLeaderboard(10);
@@ -46,7 +38,6 @@ export function Leaderboard() {
 
   if (!leaders || leaders.length === 0) return null;
 
-  // Triple the list so there's always content visible during the loop
   const items = [...leaders, ...leaders, ...leaders];
 
   return (
@@ -87,23 +78,29 @@ export function Leaderboard() {
   );
 }
 
+const webOverflowFix = Platform.OS === 'web'
+  ? { overflowX: 'hidden' as any }
+  : {};
+
 const styles = StyleSheet.create({
   container: {
     marginBottom: 12,
     overflow: 'hidden',
+    ...webOverflowFix,
   },
   tickerBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: theme.colors.white,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: theme.colors.gray200,
     overflow: 'hidden',
     height: 40,
+    ...webOverflowFix,
   },
   labelBox: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 8,
     height: '100%',
     justifyContent: 'center',
@@ -113,7 +110,7 @@ const styles = StyleSheet.create({
   labelText: {
     fontSize: 9,
     fontWeight: '800',
-    color: colors.white,
+    color: theme.colors.white,
     letterSpacing: 0.5,
     textAlign: 'center',
     lineHeight: 12,
@@ -123,6 +120,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: '100%',
     position: 'relative',
+    ...webOverflowFix,
   },
   tickerTrack: {
     flexDirection: 'row',
@@ -135,11 +133,12 @@ const styles = StyleSheet.create({
   tickerEntry: {
     flexDirection: 'row',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   tickerRank: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.primary,
+    color: theme.colors.primary,
     marginRight: 3,
   },
   tickerBadge: {
@@ -149,16 +148,16 @@ const styles = StyleSheet.create({
   tickerName: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginRight: 4,
   },
   tickerCount: {
     fontSize: 13,
     fontWeight: '500',
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   tickerDot: {
     fontSize: 14,
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
 });

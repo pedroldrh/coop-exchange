@@ -13,6 +13,8 @@ import {
 import { useAuth } from '../../hooks/use-auth';
 import { EMAIL_DOMAIN } from '../../lib/constants';
 import { showAlert } from '../../lib/utils';
+import { theme } from '../../lib/theme';
+import { WebContainer } from '../../components/ui/WebContainer';
 
 export function LoginScreen() {
   const { signInWithPassword, signUp } = useAuth();
@@ -57,162 +59,137 @@ export function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <WebContainer>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Hero / Branding */}
-        <View style={styles.hero}>
-          <View style={styles.logoCircle}>
-            <Image
-              source={require('../../../assets/logo.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.tagline}>
-            Give your meal swipes to other Gennies and get access to free food
-          </Text>
-        </View>
-
-        {/* Form Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
-          </Text>
-          <Text style={styles.cardSubtitle}>
-            {isSignUp
-              ? 'Sign up with your W&L email'
-              : 'Sign in to your account'}
-          </Text>
-
-          {/* Email */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>✉</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={`you@${EMAIL_DOMAIN}`}
-                placeholderTextColor="#A0AEC0"
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-                editable={!loading}
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.hero}>
+            <View style={styles.logoCircle}>
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
               />
             </View>
+            <Text style={styles.tagline}>
+              Give your meal swipes to other Gennies and get access to free food
+            </Text>
           </View>
 
-          {/* Password */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Password</Text>
-            <View style={styles.inputWrapper}>
-              <Text style={styles.inputIcon}>🔒</Text>
-              <TextInput
-                style={styles.input}
-                placeholder={isSignUp ? 'Create a password' : 'Enter your password'}
-                placeholderTextColor="#A0AEC0"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-                onSubmitEditing={isSignUp ? undefined : onSubmit}
-              />
-            </View>
-          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>
+              {isSignUp ? 'Create Account' : 'Welcome Back'}
+            </Text>
+            <Text style={styles.cardSubtitle}>
+              {isSignUp
+                ? 'Sign up with your W&L email'
+                : 'Sign in to your account'}
+            </Text>
 
-          {/* Confirm Password (sign up only) */}
-          {isSignUp && (
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
+              <Text style={styles.inputLabel}>Email</Text>
               <View style={styles.inputWrapper}>
-                <Text style={styles.inputIcon}>🔒</Text>
+                <Text style={styles.inputIcon}>{'\u2709'}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Confirm your password"
-                  placeholderTextColor="#A0AEC0"
-                  secureTextEntry
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
+                  placeholder={`you@${EMAIL_DOMAIN}`}
+                  placeholderTextColor={theme.colors.textMuted}
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  keyboardType="email-address"
+                  value={email}
+                  onChangeText={setEmail}
                   editable={!loading}
-                  onSubmitEditing={onSubmit}
                 />
               </View>
             </View>
-          )}
 
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-            onPress={onSubmit}
-            activeOpacity={0.85}
-            disabled={loading}
-          >
-            <Text style={styles.submitButtonText}>
-              {loading
-                ? (isSignUp ? 'Creating Account...' : 'Signing In...')
-                : (isSignUp ? 'Create Account' : 'Sign In')}
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.inputIcon}>{'\uD83D\uDD12'}</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder={isSignUp ? 'Create a password' : 'Enter your password'}
+                  placeholderTextColor={theme.colors.textMuted}
+                  secureTextEntry
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                  onSubmitEditing={isSignUp ? undefined : onSubmit}
+                />
+              </View>
+            </View>
+
+            {isSignUp && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Confirm Password</Text>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputIcon}>{'\uD83D\uDD12'}</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Confirm your password"
+                    placeholderTextColor={theme.colors.textMuted}
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    editable={!loading}
+                    onSubmitEditing={onSubmit}
+                  />
+                </View>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+              onPress={onSubmit}
+              activeOpacity={0.85}
+              disabled={loading}
+            >
+              <Text style={styles.submitButtonText}>
+                {loading
+                  ? (isSignUp ? 'Creating Account...' : 'Signing In...')
+                  : (isSignUp ? 'Create Account' : 'Sign In')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleLabel}>
+              {isSignUp ? 'Already have an account?' : "Don't have an account?"}
             </Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              onPress={() => {
+                setIsSignUp(!isSignUp);
+                setConfirmPassword('');
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.toggleLink}>
+                {isSignUp ? 'Sign In' : 'Sign Up'}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Toggle */}
-        <View style={styles.toggleRow}>
-          <Text style={styles.toggleLabel}>
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+          <Text style={styles.footer}>
+            Washington and Lee University
           </Text>
-          <TouchableOpacity
-            onPress={() => {
-              setIsSignUp(!isSignUp);
-              setConfirmPassword('');
-            }}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.toggleLink}>
-              {isSignUp ? 'Sign In' : 'Sign Up'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Footer */}
-        <Text style={styles.footer}>
-          Washington and Lee University
-        </Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </WebContainer>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Colors                                                              */
-/* ------------------------------------------------------------------ */
-
-const PRIMARY = '#4F46E5';
-const PRIMARY_DARK = '#4338CA';
-const BG = '#F0F2F8';
-const CARD_BG = '#FFFFFF';
-const TEXT_PRIMARY = '#1A202C';
-const TEXT_SECONDARY = '#718096';
-const TEXT_MUTED = '#A0AEC0';
-const INPUT_BG = '#F7FAFC';
-const INPUT_BORDER = '#E2E8F0';
-const INPUT_FOCUS = '#4F46E5';
-
-/* ------------------------------------------------------------------ */
-/* Styles                                                              */
-/* ------------------------------------------------------------------ */
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG,
+    backgroundColor: theme.colors.bg,
   },
   scrollContent: {
     flexGrow: 1,
@@ -220,8 +197,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 48,
   },
-
-  /* Hero */
   hero: {
     alignItems: 'center',
     marginBottom: 32,
@@ -230,12 +205,12 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: CARD_BG,
+    backgroundColor: theme.colors.cardBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: PRIMARY,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -247,52 +222,44 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 15,
-    color: TEXT_SECONDARY,
+    color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
-
-  /* Card */
   card: {
-    backgroundColor: CARD_BG,
-    borderRadius: 20,
+    backgroundColor: theme.colors.cardBg,
+    borderRadius: theme.radius.xxl,
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 4,
+    ...theme.shadow.lg,
   },
   cardTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: TEXT_PRIMARY,
+    color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
-    color: TEXT_SECONDARY,
+    color: theme.colors.textSecondary,
     marginBottom: 24,
   },
-
-  /* Inputs */
   inputGroup: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: TEXT_PRIMARY,
+    color: theme.colors.textPrimary,
     marginBottom: 6,
     letterSpacing: 0.2,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: INPUT_BG,
+    backgroundColor: theme.colors.inputBg,
     borderWidth: 1.5,
-    borderColor: INPUT_BORDER,
-    borderRadius: 12,
+    borderColor: theme.colors.inputBorder,
+    borderRadius: theme.radius.lg,
     paddingHorizontal: 14,
   },
   inputIcon: {
@@ -304,17 +271,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     fontSize: 15,
-    color: TEXT_PRIMARY,
+    color: theme.colors.textPrimary,
   },
-
-  /* Submit */
   submitButton: {
-    backgroundColor: PRIMARY,
-    borderRadius: 12,
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: PRIMARY,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -324,13 +289,11 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: theme.colors.white,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
-
-  /* Toggle */
   toggleRow: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -340,19 +303,17 @@ const styles = StyleSheet.create({
   },
   toggleLabel: {
     fontSize: 14,
-    color: TEXT_SECONDARY,
+    color: theme.colors.textSecondary,
   },
   toggleLink: {
     fontSize: 14,
     fontWeight: '700',
-    color: PRIMARY,
+    color: theme.colors.primary,
   },
-
-  /* Footer */
   footer: {
     textAlign: 'center',
     fontSize: 12,
-    color: TEXT_MUTED,
+    color: theme.colors.textMuted,
     marginTop: 32,
     letterSpacing: 0.5,
   },

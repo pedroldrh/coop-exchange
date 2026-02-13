@@ -8,25 +8,12 @@ import {
 } from 'react-native';
 import { CAFE_77_MENU, type MenuItem } from '../lib/menu';
 import { SWIPE_VALUE } from '../lib/constants';
+import { theme } from '../lib/theme';
 
 interface MenuPickerProps {
   selections: Record<string, number>;
   onSelectionsChange: (selections: Record<string, number>) => void;
 }
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#EEF2FF',
-  gray100: '#F3F4F6',
-  gray200: '#E5E7EB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-  success: '#10B981',
-  danger: '#EF4444',
-};
 
 export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) {
   const [activeCategory, setActiveCategory] = useState(CAFE_77_MENU[0].name);
@@ -106,7 +93,7 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
                   ]}
                   onPress={() => handleDecrement(item.id)}
                 >
-                  <Text style={styles.qtyButtonText}>−</Text>
+                  <Text style={styles.qtyButtonText}>{'\u2212'}</Text>
                 </Pressable>
                 <Text style={styles.qtyText}>{qty}</Text>
               </>
@@ -140,7 +127,6 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
 
   return (
     <View style={styles.container}>
-      {/* Category tabs */}
       <View style={styles.tabsContainer}>
         {CAFE_77_MENU.map((cat) => (
           <Pressable
@@ -163,7 +149,6 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
         ))}
       </View>
 
-      {/* Items list */}
       <FlatList
         data={activeItems}
         renderItem={renderItem}
@@ -172,7 +157,6 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Bottom total bar */}
       <View style={styles.bottomBar}>
         <View style={styles.totalInfo}>
           <Text style={styles.totalLabel}>
@@ -216,18 +200,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
   },
   tabActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.gray500,
+    color: theme.colors.gray500,
   },
   tabTextActive: {
-    color: colors.white,
+    color: theme.colors.white,
   },
   listContent: {
     paddingBottom: 8,
@@ -239,7 +223,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: theme.colors.gray100,
   },
   itemRowDisabled: {
     opacity: 0.4,
@@ -251,18 +235,18 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 15,
     fontWeight: '500',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 2,
   },
   itemNameDisabled: {
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   itemPrice: {
     fontSize: 13,
-    color: colors.gray500,
+    color: theme.colors.gray500,
   },
   itemPriceDisabled: {
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   qtyControls: {
     flexDirection: 'row',
@@ -273,36 +257,36 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   qtyButtonAdd: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: theme.colors.primarySurface,
   },
   qtyButtonPressed: {
     opacity: 0.7,
   },
   qtyButtonDisabled: {
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     opacity: 0.4,
   },
   qtyButtonText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.gray700,
+    color: theme.colors.gray700,
     lineHeight: 20,
   },
   qtyButtonAddText: {
-    color: colors.primary,
+    color: theme.colors.primary,
   },
   qtyButtonTextDisabled: {
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   qtyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     minWidth: 20,
     textAlign: 'center',
   },
@@ -310,7 +294,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 4,
     borderTopWidth: 1,
-    borderTopColor: colors.gray200,
+    borderTopColor: theme.colors.gray200,
   },
   totalInfo: {
     flexDirection: 'row',
@@ -320,35 +304,35 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 13,
-    color: colors.gray500,
+    color: theme.colors.gray500,
   },
   totalAmount: {
     fontSize: 16,
     fontWeight: '600',
   },
   totalOk: {
-    color: colors.primary,
+    color: theme.colors.primary,
   },
   totalOver: {
-    color: colors.danger,
+    color: theme.colors.danger,
   },
   totalMax: {
     fontSize: 14,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     fontWeight: '400',
   },
   progressBarBg: {
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     borderRadius: 2,
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
   },
   progressBarFull: {
-    backgroundColor: colors.success,
+    backgroundColor: theme.colors.success,
   },
 });

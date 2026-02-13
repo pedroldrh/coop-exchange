@@ -7,6 +7,7 @@ import { AuthProvider } from './src/providers/AuthProvider';
 import { QueryProvider } from './src/providers/QueryProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { supabaseConfigured } from './src/lib/supabase';
+import { theme } from './src/lib/theme';
 
 function SetupScreen() {
   return (
@@ -32,24 +33,21 @@ const setupStyles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.gray50,
     padding: 24,
   },
   icon: { fontSize: 48, marginBottom: 16 },
-  title: { fontSize: 28, fontWeight: '700', color: '#4F46E5', marginBottom: 4 },
-  subtitle: { fontSize: 16, color: '#6B7280', marginBottom: 24 },
+  title: { fontSize: 28, fontWeight: '700', color: theme.colors.primary, marginBottom: 4 },
+  subtitle: { fontSize: 16, color: theme.colors.gray500, marginBottom: 24 },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     borderRadius: 12,
     padding: 20,
     width: '100%',
     maxWidth: 400,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    ...theme.shadow.sm,
   },
-  step: { fontSize: 14, color: '#374151', lineHeight: 28 },
+  step: { fontSize: 14, color: theme.colors.gray700, lineHeight: 28 },
 });
 
 // Inject web overflow fix immediately (outside component lifecycle)
@@ -70,6 +68,7 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
         width: 100% !important;
         height: 100% !important;
         margin: 0 !important;
+        background-color: #E5E7EB !important;
       }
     `;
     document.head.appendChild(style);
@@ -86,7 +85,12 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
 }
 
 const webClip = Platform.OS === 'web'
-  ? { overflow: 'hidden' as const, maxWidth: '100vw' as any }
+  ? {
+      overflow: 'hidden' as const,
+      maxWidth: theme.layout.maxContentWidth,
+      alignSelf: 'center' as const,
+      width: '100%' as any,
+    }
   : {};
 
 export default function App() {

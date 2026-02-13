@@ -4,29 +4,9 @@ import { Card } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { formatRelativeTime, truncateText } from '../lib/utils';
 import { STATUS_LABELS } from '../lib/constants';
+import { theme } from '../lib/theme';
 import type { Request, Profile } from '../types/database';
 import type { RequestStatus } from '../lib/constants';
-
-const STATUS_COLORS: Record<string, string> = {
-  requested: '#6B7280',
-  accepted: '#3B82F6',
-  paid: '#8B5CF6',
-  ordered: '#F59E0B',
-  picked_up: '#F97316',
-  completed: '#10B981',
-  cancelled: '#EF4444',
-  disputed: '#DC2626',
-};
-
-const colors = {
-  primary: '#4F46E5',
-  primaryLight: '#818CF8',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 type RequestWithProfiles = Request & {
   buyer: Profile;
@@ -49,21 +29,19 @@ export function RequestCard({
   const otherParty = isBuyer ? request.seller : request.buyer;
   const otherName = otherParty?.name ?? 'Anonymous';
 
-  const statusColor = STATUS_COLORS[request.status] ?? colors.gray500;
+  const statusColor = theme.statusColors[request.status] ?? theme.colors.gray500;
   const statusLabel = STATUS_LABELS[request.status as RequestStatus] ?? request.status;
 
   return (
     <Card onPress={onPress} style={styles.card}>
       {/* Role label */}
       <View style={styles.header}>
-        <View
-          style={[
-            styles.roleBadge,
-            { backgroundColor: isBuyer ? colors.primaryLight : colors.primary },
-          ]}
-        >
-          <Text style={styles.roleText}>{roleLabel}</Text>
-        </View>
+        <Badge
+          label={roleLabel}
+          color={isBuyer ? theme.colors.primaryLight : theme.colors.primary}
+          size="sm"
+          variant="soft"
+        />
         <Text style={styles.timeAgo}>
           {formatRelativeTime(request.created_at)}
         </Text>
@@ -79,9 +57,12 @@ export function RequestCard({
         </Text>
       )}
 
+      {/* Divider */}
+      <View style={styles.divider} />
+
       {/* Status badge */}
       <View style={styles.footer}>
-        <Badge label={statusLabel} color={statusColor} size="sm" />
+        <Badge label={statusLabel} color={statusColor} size="sm" variant="soft" />
       </View>
     </Card>
   );
@@ -97,30 +78,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  roleBadge: {
-    paddingVertical: 2,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-  },
-  roleText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.white,
-  },
   timeAgo: {
     fontSize: 12,
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
   otherName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 4,
   },
   itemsText: {
     fontSize: 14,
-    color: colors.gray700,
+    color: theme.colors.gray700,
     lineHeight: 20,
+    marginBottom: 8,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.gray100,
     marginBottom: 8,
   },
   footer: {

@@ -10,15 +10,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { supabase } from '../lib/supabase';
-
-const colors = {
-  primary: '#4F46E5',
-  gray200: '#E5E7EB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  white: '#FFFFFF',
-};
+import { theme } from '../lib/theme';
 
 interface ProofImageProps {
   path: string | null;
@@ -84,7 +76,7 @@ export function ProofImage({
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color={colors.primary} />
+          <ActivityIndicator size="small" color={theme.colors.primary} />
         </View>
       ) : signedUrl ? (
         <Pressable
@@ -103,7 +95,6 @@ export function ProofImage({
         </View>
       )}
 
-      {/* Full-screen image modal */}
       <RNModal
         visible={fullScreenVisible}
         transparent
@@ -151,34 +142,34 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.gray700,
+    color: theme.colors.gray700,
     marginBottom: 6,
   },
   placeholder: {
     width: 150,
     height: 150,
-    borderRadius: 8,
-    backgroundColor: colors.gray200,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
     fontSize: 13,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     textAlign: 'center',
   },
   loadingContainer: {
     width: 150,
     height: 150,
-    borderRadius: 8,
-    backgroundColor: colors.gray200,
+    borderRadius: theme.radius.md,
+    backgroundColor: theme.colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
   },
   thumbnail: {
     width: 150,
     height: 150,
-    borderRadius: 8,
+    borderRadius: theme.radius.md,
   },
   pressed: {
     opacity: 0.8,
@@ -200,12 +191,12 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.white,
   },
   closeButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: theme.radius.md,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   closeButtonPressed: {
@@ -214,7 +205,7 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 15,
     fontWeight: '500',
-    color: colors.white,
+    color: theme.colors.white,
   },
   fullImage: {
     flex: 1,

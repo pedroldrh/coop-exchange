@@ -1,17 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
-const colors = {
-  white: '#FFFFFF',
-};
+import { theme } from '../../lib/theme';
 
 type BadgeSize = 'sm' | 'md';
+type BadgeVariant = 'filled' | 'soft';
 
 interface BadgeProps {
   label: string;
   color: string;
   textColor?: string;
   size?: BadgeSize;
+  variant?: BadgeVariant;
 }
 
 const sizeStyles: Record<BadgeSize, { paddingVertical: number; paddingHorizontal: number; fontSize: number }> = {
@@ -30,23 +29,28 @@ const sizeStyles: Record<BadgeSize, { paddingVertical: number; paddingHorizontal
 export function Badge({
   label,
   color,
-  textColor = colors.white,
+  textColor,
   size = 'md',
+  variant = 'filled',
 }: BadgeProps) {
   const s = sizeStyles[size];
+  const isSoft = variant === 'soft';
+
+  const bgColor = isSoft ? color + '18' : color;
+  const txtColor = textColor ?? (isSoft ? color : theme.colors.white);
 
   return (
     <View
       style={[
         styles.badge,
         {
-          backgroundColor: color,
+          backgroundColor: bgColor,
           paddingVertical: s.paddingVertical,
           paddingHorizontal: s.paddingHorizontal,
         },
       ]}
     >
-      <Text style={[styles.text, { color: textColor, fontSize: s.fontSize }]}>
+      <Text style={[styles.text, { color: txtColor, fontSize: s.fontSize }]}>
         {label}
       </Text>
     </View>
@@ -56,7 +60,7 @@ export function Badge({
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: 999,
+    borderRadius: theme.radius.full,
   },
   text: {
     fontWeight: '600',

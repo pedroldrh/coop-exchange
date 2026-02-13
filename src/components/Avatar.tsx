@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import { theme } from '../lib/theme';
 
 interface AvatarProps {
   name: string | null;
@@ -7,27 +8,22 @@ interface AvatarProps {
   size?: number;
 }
 
-const colors = {
-  primary: '#4F46E5',
-  white: '#FFFFFF',
-};
-
 export function Avatar({ name, avatarUrl, size = 48 }: AvatarProps) {
   const [failed, setFailed] = useState(false);
   const borderRadius = size / 2;
 
-  // Show stored avatar if available
   if (avatarUrl && !failed) {
     return (
-      <Image
-        source={{ uri: avatarUrl }}
-        style={{ width: size, height: size, borderRadius, backgroundColor: '#EEF2FF' }}
-        onError={() => setFailed(true)}
-      />
+      <View style={{ width: size + 4, height: size + 4, borderRadius: (size + 4) / 2, borderWidth: 2, borderColor: theme.colors.primarySurface, alignItems: 'center', justifyContent: 'center' }}>
+        <Image
+          source={{ uri: avatarUrl }}
+          style={{ width: size, height: size, borderRadius, backgroundColor: theme.colors.primarySurface }}
+          onError={() => setFailed(true)}
+        />
+      </View>
     );
   }
 
-  // Fallback to initials
   const initials = (name ?? '?')
     .split(/(?=[A-Z])/)
     .map((w) => w[0])
@@ -44,12 +40,12 @@ export function Avatar({ name, avatarUrl, size = 48 }: AvatarProps) {
 
 const styles = StyleSheet.create({
   fallback: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   fallbackText: {
     fontWeight: '600',
-    color: colors.white,
+    color: theme.colors.white,
   },
 });

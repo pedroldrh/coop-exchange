@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  FlatList,
   StyleSheet,
   RefreshControl,
 } from 'react-native';
@@ -16,27 +15,14 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { Loading } from '../../components/ui/Loading';
+import { WebContainer } from '../../components/ui/WebContainer';
 import { StarDisplay } from '../../components/StarDisplay';
 import { RequestCard } from '../../components/RequestCard';
 import { Avatar } from '../../components/Avatar';
 import { formatDate } from '../../lib/utils';
+import { theme } from '../../lib/theme';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
-
-const colors = {
-  primary: '#4F46E5',
-  success: '#10B981',
-  warning: '#F59E0B',
-  danger: '#EF4444',
-  gray50: '#F9FAFB',
-  gray100: '#F3F4F6',
-  gray300: '#D1D5DB',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#FFFFFF',
-};
 
 export function PostDetailScreen({ route, navigation }: Props) {
   const { postId } = route.params;
@@ -71,128 +57,126 @@ export function PostDetailScreen({ route, navigation }: Props) {
 
   const spotsLeft = post.capacity_remaining;
   const capacityColor =
-    spotsLeft === 0 ? colors.danger : spotsLeft <= 2 ? colors.warning : colors.success;
+    spotsLeft === 0 ? theme.colors.danger : spotsLeft <= 2 ? theme.colors.warning : theme.colors.success;
   const capacityLabel =
     spotsLeft === 0
       ? 'Full'
       : `${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} left`;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-      refreshControl={
-        <RefreshControl
-          refreshing={isRefetching}
-          onRefresh={refetch}
-          tintColor={colors.primary}
-        />
-      }
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Freshman Info Card */}
-      <Card style={styles.sellerCard}>
-        <View style={styles.sellerHeader}>
-          <View style={{ marginRight: 12 }}>
-            <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={48} />
-          </View>
-          <View style={styles.sellerDetails}>
-            <Text style={styles.sellerName}>
-              {post.seller.name ?? 'Anonymous'}
-            </Text>
-            <StarDisplay rating={post.seller.rating_avg} size={16} showValue />
-          </View>
-        </View>
-      </Card>
-
-      {/* Post Details Card */}
-      <Card style={styles.detailCard}>
-        <Text style={styles.sectionTitle}>Swipe Details</Text>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Capacity</Text>
-          <View style={styles.capacityRow}>
-            <Badge label={capacityLabel} color={capacityColor} size="sm" />
-            <Text style={styles.capacityText}>
-              {post.capacity_remaining} / {post.capacity_total}
-            </Text>
-          </View>
-        </View>
-
-        {post.location && (
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Pickup Location</Text>
-            <Text style={styles.detailValue}>{post.location}</Text>
-          </View>
-        )}
-
-        {post.notes && (
-          <View style={styles.notesSection}>
-            <Text style={styles.detailLabel}>Notes</Text>
-            <Text style={styles.notesText}>{post.notes}</Text>
-          </View>
-        )}
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Posted</Text>
-          <Text style={styles.detailValue}>{formatDate(post.created_at)}</Text>
-        </View>
-      </Card>
-
-      {/* Request Order Button — only for other people's posts */}
-      {!isOwner && (
-        <View style={styles.actionSection}>
-          <Button
-            title={
-              isFull
-                ? 'No Swipes Available'
-                : !canRequest
-                ? 'Share a swipe first to request food'
-                : 'Request Food'
-            }
-            onPress={handleRequestOrder}
-            disabled={isFull || !canRequest || sharingLoading}
-            fullWidth
-            size="lg"
+    <WebContainer>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={theme.colors.primary}
           />
-          {!canRequest && !sharingLoading && (
-            <Text style={styles.gateHint}>
-              You must successfully share at least 1 meal before you can request food.
-            </Text>
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <Card style={styles.sellerCard}>
+          <View style={styles.sellerHeader}>
+            <View style={{ marginRight: 12 }}>
+              <Avatar name={post.seller.name} avatarUrl={post.seller.avatar_url} size={48} />
+            </View>
+            <View style={styles.sellerDetails}>
+              <Text style={styles.sellerName}>
+                {post.seller.name ?? 'Anonymous'}
+              </Text>
+              <StarDisplay rating={post.seller.rating_avg} size={16} showValue />
+            </View>
+          </View>
+        </Card>
+
+        <Card style={styles.detailCard}>
+          <Text style={styles.sectionTitle}>Swipe Details</Text>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Capacity</Text>
+            <View style={styles.capacityRow}>
+              <Badge label={capacityLabel} color={capacityColor} size="sm" variant="soft" />
+              <Text style={styles.capacityText}>
+                {post.capacity_remaining} / {post.capacity_total}
+              </Text>
+            </View>
+          </View>
+
+          {post.location && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Pickup Location</Text>
+              <Text style={styles.detailValue}>{post.location}</Text>
+            </View>
           )}
-        </View>
-      )}
 
-      {/* Existing requests (visible to post owner) */}
-      {isOwner && requests && requests.length > 0 && (
-        <View style={styles.requestsSection}>
-          <Text style={styles.sectionTitle}>
-            Food Requests ({requests.length})
-          </Text>
-          {requests.map((request) => (
-            <RequestCard
-              key={request.id}
-              request={request}
-              currentUserId={user!.id}
-              onPress={() => handleRequestPress(request.id)}
+          {post.notes && (
+            <View style={styles.notesSection}>
+              <Text style={styles.detailLabel}>Notes</Text>
+              <Text style={styles.notesText}>{post.notes}</Text>
+            </View>
+          )}
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Posted</Text>
+            <Text style={styles.detailValue}>{formatDate(post.created_at)}</Text>
+          </View>
+        </Card>
+
+        {!isOwner && (
+          <View style={styles.actionSection}>
+            <Button
+              title={
+                isFull
+                  ? 'No Swipes Available'
+                  : !canRequest
+                  ? 'Share a swipe first to request food'
+                  : 'Request Food'
+              }
+              onPress={handleRequestOrder}
+              disabled={isFull || !canRequest || sharingLoading}
+              fullWidth
+              size="lg"
             />
-          ))}
-        </View>
-      )}
+            {!canRequest && !sharingLoading && (
+              <Text style={styles.gateHint}>
+                You must successfully share at least 1 meal before you can request food.
+              </Text>
+            )}
+          </View>
+        )}
 
-      {isOwner && requests && requests.length === 0 && (
-        <View style={styles.emptyRequests}>
-          <Text style={styles.emptyText}>No requests yet</Text>
-        </View>
-      )}
-    </ScrollView>
+        {isOwner && requests && requests.length > 0 && (
+          <View style={styles.requestsSection}>
+            <Text style={styles.sectionTitle}>
+              Food Requests ({requests.length})
+            </Text>
+            {requests.map((request) => (
+              <RequestCard
+                key={request.id}
+                request={request}
+                currentUserId={user!.id}
+                onPress={() => handleRequestPress(request.id)}
+              />
+            ))}
+          </View>
+        )}
+
+        {isOwner && requests && requests.length === 0 && (
+          <View style={styles.emptyRequests}>
+            <Text style={styles.emptyText}>No requests yet</Text>
+          </View>
+        )}
+      </ScrollView>
+    </WebContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: theme.colors.gray50,
   },
   contentContainer: {
     padding: 16,
@@ -212,7 +196,7 @@ const styles = StyleSheet.create({
   sellerName: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
   },
   detailCard: {
     marginBottom: 16,
@@ -220,7 +204,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.gray900,
+    color: theme.colors.gray900,
     marginBottom: 12,
   },
   detailRow: {
@@ -229,16 +213,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: theme.colors.gray100,
   },
   detailLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.gray500,
+    color: theme.colors.gray500,
   },
   detailValue: {
     fontSize: 14,
-    color: colors.gray900,
+    color: theme.colors.gray900,
     fontWeight: '500',
     flexShrink: 1,
     textAlign: 'right',
@@ -251,17 +235,17 @@ const styles = StyleSheet.create({
   },
   capacityText: {
     fontSize: 13,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     fontWeight: '500',
   },
   notesSection: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray100,
+    borderBottomColor: theme.colors.gray100,
   },
   notesText: {
     fontSize: 14,
-    color: colors.gray700,
+    color: theme.colors.gray700,
     lineHeight: 22,
     marginTop: 4,
   },
@@ -270,7 +254,7 @@ const styles = StyleSheet.create({
   },
   gateHint: {
     fontSize: 13,
-    color: colors.gray500,
+    color: theme.colors.gray500,
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 18,
@@ -285,6 +269,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: colors.gray400,
+    color: theme.colors.gray400,
   },
 });

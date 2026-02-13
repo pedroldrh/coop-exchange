@@ -1,14 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { getEarnedBadges, getNextBadge, type BadgeTier } from '../lib/badges';
-
-const colors = {
-  gray100: '#F3F4F6',
-  gray400: '#9CA3AF',
-  gray500: '#6B7280',
-  gray700: '#374151',
-  gray900: '#111827',
-};
+import { getEarnedBadges, getNextBadge } from '../lib/badges';
+import { theme } from '../lib/theme';
 
 interface BadgeDisplayProps {
   completedCount: number;
@@ -90,7 +83,7 @@ const styles = StyleSheet.create({
   },
   noBadges: {
     fontSize: 13,
-    color: colors.gray400,
+    color: theme.colors.gray400,
     fontStyle: 'italic',
   },
   progressSection: {
@@ -98,12 +91,12 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: colors.gray500,
+    color: theme.colors.gray500,
   },
   progressBarBg: {
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.gray100,
+    backgroundColor: theme.colors.gray100,
     overflow: 'hidden',
   },
   progressBarFill: {
