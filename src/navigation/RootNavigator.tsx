@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { useWebPush } from '../hooks/use-web-push';
+import { NotificationPrompt } from '../components/NotificationPrompt';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { InstallPromptScreen } from '../screens/auth/InstallPromptScreen';
 import { MainTabs } from './MainTabs';
@@ -32,7 +33,7 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
   const { user, loading } = useAuth();
-  useWebPush();
+  const { shouldPrompt, subscribe, dismiss } = useWebPush();
 
   if (loading) {
     return (
@@ -48,13 +49,20 @@ export function RootNavigator() {
   }
 
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {!user ? (
-        <RootStack.Screen name="Auth" component={AuthNavigator} />
-      ) : (
-        <RootStack.Screen name="Main" component={MainTabs} />
-      )}
-    </RootStack.Navigator>
+    <>
+      <NotificationPrompt
+        visible={shouldPrompt}
+        onEnable={subscribe}
+        onDismiss={dismiss}
+      />
+      <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        {!user ? (
+          <RootStack.Screen name="Auth" component={AuthNavigator} />
+        ) : (
+          <RootStack.Screen name="Main" component={MainTabs} />
+        )}
+      </RootStack.Navigator>
+    </>
   );
 }
 

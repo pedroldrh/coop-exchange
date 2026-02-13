@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { useAuth } from './use-auth';
 import { supabase } from '../lib/supabase';
@@ -18,62 +18,76 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 /**
  * Subscribes the current user to web push notifications.
- * Stores the PushSubscription JSON in the `push_token` column of their profile.
- * No-op on native platforms or if VAPID key is not configured.
+ * Returns `shouldPrompt` (true if we need to show the custom pre-prompt)
+ * and `subscribe` (triggers the native permission + push subscription).
  */
 export function useWebPush() {
   const { user } = useAuth();
+  const [shouldPrompt, setShouldPrompt] = useState(false);
 
   useEffect(() => {
-    console.log('[WebPush] Hook running', { platform: Platform.OS, user: !!user, vapid: !!VAPID_PUBLIC_KEY });
     if (Platform.OS !== 'web') return;
     if (!user) return;
-    if (!VAPID_PUBLIC_KEY) {
-      console.warn('[WebPush] VAPID public key not configured');
+    if (!VAPID_PUBLIC_KEY) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    if (!('Notification' in window)) return;
+
+    // If already granted, subscribe silently
+    if (Notification.permission === 'granted') {
+      subscribeAndSave(user.id);
       return;
     }
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      console.warn('[WebPush] serviceWorker or PushManager not available');
-      return;
-    }
 
-    let cancelled = false;
+    // If denied, don't bother
+    if (Notification.permission === 'denied') return;
 
-    (async () => {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted' || cancelled) return;
-
-        const registration = await navigator.serviceWorker.ready;
-
-        // Check for existing subscription first
-        let subscription = await registration.pushManager.getSubscription();
-
-        if (!subscription) {
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-          });
-        }
-
-        // Store in profiles table
-        const { error } = await supabase
-          .from('profiles')
-          .update({ push_token: JSON.stringify(subscription.toJSON()) })
-          .eq('id', user.id);
-
-        if (error) {
-          console.warn('[WebPush] Failed to save subscription:', error.message);
-        } else {
-          console.log('[WebPush] Subscription saved');
-        }
-      } catch (err) {
-        console.warn('[WebPush] Setup failed:', err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    // Permission is 'default' — show our custom pre-prompt
+    setShouldPrompt(true);
   }, [user]);
+
+  const subscribe = useCallback(async () => {
+    if (!user) return;
+    setShouldPrompt(false);
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      await subscribeAndSave(user.id);
+    } catch (err) {
+      console.warn('[WebPush] Setup failed:', err);
+    }
+  }, [user]);
+
+  const dismiss = useCallback(() => {
+    setShouldPrompt(false);
+  }, []);
+
+  return { shouldPrompt, subscribe, dismiss };
+}
+
+async function subscribeAndSave(userId: string) {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      });
+    }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ push_token: JSON.stringify(subscription.toJSON()) })
+      .eq('id', userId);
+
+    if (error) {
+      console.warn('[WebPush] Failed to save subscription:', error.message);
+    } else {
+      console.log('[WebPush] Subscription saved');
+    }
+  } catch (err) {
+    console.warn('[WebPush] Subscribe failed:', err);
+  }
 }
