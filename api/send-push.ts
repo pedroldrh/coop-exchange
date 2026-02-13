@@ -15,6 +15,9 @@ interface NotificationInfo {
   recipientId: string;
   title: string;
   body: string;
+  /** Extra fields to look up for richer emails */
+  lookupBuyerName?: boolean;
+  includeOrderDetails?: boolean;
 }
 
 export default async function handler(req: any, res: any) {
@@ -77,6 +80,43 @@ export default async function handler(req: any, res: any) {
     }
 
     const recipientName = profiles[0]?.name ?? 'there';
+    const record = payload.record;
+
+    // Look up buyer's name if needed (for seller-facing emails)
+    let buyerName = 'Someone';
+    if (notification.lookupBuyerName && record.buyer_id) {
+      const buyerRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${record.buyer_id}&select=name`,
+        {
+          headers: {
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'apikey': SUPABASE_SERVICE_KEY,
+          },
+        },
+      );
+      if (buyerRes.ok) {
+        const buyers = await buyerRes.json();
+        buyerName = buyers[0]?.name ?? 'Someone';
+      }
+    }
+
+    // Build email HTML
+    let html = `<p>Hi ${recipientName},</p><p>${notification.body}</p>`;
+
+    if (notification.includeOrderDetails) {
+      const items = record.items_text ?? '';
+      const instructions = record.instructions ?? '';
+      html += `<div style="background:#F3F4F6;padding:12px 16px;border-radius:8px;margin:12px 0;">`;
+      html += `<p style="margin:0 0 4px;font-weight:600;">From: ${buyerName}</p>`;
+      html += `<p style="margin:0 0 4px;font-weight:600;">They want:</p><p style="margin:0 0 8px;">${items}</p>`;
+      if (instructions) {
+        html += `<p style="margin:0 0 4px;font-weight:600;">Instructions:</p><p style="margin:0;">${instructions}</p>`;
+      }
+      html += `</div>`;
+      html += `<p><a href="https://apps.apple.com/app/id1494719529" style="display:inline-block;background:#4F46E5;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Open WL Mobile Order</a></p>`;
+    }
+
+    html += `<p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>`;
 
     // Send via Resend API
     const emailRes = await fetch('https://api.resend.com/emails', {
@@ -89,7 +129,7 @@ export default async function handler(req: any, res: any) {
         from: 'Coop Exchange <notifications@foodie-co.com>',
         to: [recipientEmail],
         subject: notification.title,
-        html: `<p>Hi ${recipientName},</p><p>${notification.body}</p><p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>`,
+        html,
       }),
     });
 
@@ -114,6 +154,8 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
       recipientId: record.seller_id,
       title: 'New swipe request!',
       body: 'Someone wants you to place an order for them.',
+      lookupBuyerName: true,
+      includeOrderDetails: true,
     };
   }
 
