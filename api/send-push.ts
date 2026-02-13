@@ -18,9 +18,6 @@ interface NotificationInfo {
   recipientId: string;
   title: string;
   body: string;
-  /** Extra fields to look up for richer emails */
-  lookupBuyerName?: boolean;
-  includeOrderDetails?: boolean;
 }
 
 export default async function handler(req: any, res: any) {
@@ -39,16 +36,11 @@ export default async function handler(req: any, res: any) {
 
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
   const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
   const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
     return res.status(500).json({ error: 'Missing server configuration' });
-  }
-
-  if (!RESEND_API_KEY) {
-    return res.status(500).json({ error: 'Missing RESEND_API_KEY' });
   }
 
   // Configure web push if VAPID keys are available
@@ -87,70 +79,8 @@ export default async function handler(req: any, res: any) {
     }
 
     const profiles = await profileRes.json();
-    const recipientEmail = profiles[0]?.email;
-
-    if (!recipientEmail) {
-      return res.status(200).json({ skipped: true, reason: 'No email found for recipient' });
-    }
-
-    const recipientName = profiles[0]?.name ?? 'there';
-    const record = payload.record;
-
-    // Look up buyer's name if needed (for seller-facing emails)
-    let buyerName = 'Someone';
-    if (notification.lookupBuyerName && record.buyer_id) {
-      const buyerRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?id=eq.${record.buyer_id}&select=name`,
-        {
-          headers: {
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-            'apikey': SUPABASE_SERVICE_KEY,
-          },
-        },
-      );
-      if (buyerRes.ok) {
-        const buyers = await buyerRes.json();
-        buyerName = buyers[0]?.name ?? 'Someone';
-      }
-    }
-
-    // Build email HTML
-    let html = `<p>Hi ${recipientName},</p><p>${notification.body}</p>`;
-
-    if (notification.includeOrderDetails) {
-      const items = record.items_text ?? '';
-      const instructions = record.instructions ?? '';
-      html += `<div style="background:#F3F4F6;padding:12px 16px;border-radius:8px;margin:12px 0;">`;
-      html += `<p style="margin:0 0 4px;font-weight:600;">From: ${buyerName}</p>`;
-      html += `<p style="margin:0 0 4px;font-weight:600;">They want:</p><p style="margin:0 0 8px;">${items}</p>`;
-      if (instructions) {
-        html += `<p style="margin:0 0 4px;font-weight:600;">Instructions:</p><p style="margin:0;">${instructions}</p>`;
-      }
-      html += `</div>`;
-      html += `<p><a href="https://apps.apple.com/app/id1494719529" style="display:inline-block;background:#4F46E5;color:white;padding:10px 20px;border-radius:6px;text-decoration:none;font-weight:600;">Open WL Mobile Order</a></p>`;
-    }
-
-    html += `<p style="color:#6B7280;font-size:12px;">— Coop Exchange</p>`;
-
-    // Send via Resend API
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: 'Coop Exchange <notifications@foodie-co.com>',
-        to: [recipientEmail],
-        subject: notification.title,
-        html,
-      }),
-    });
-
-    const emailData = await emailRes.json();
-
-    if (!emailRes.ok) {
-      return res.status(500).json({ error: 'Failed to send email', details: emailData });
+    if (!profiles[0]) {
+      return res.status(200).json({ skipped: true, reason: 'No profile found for recipient' });
     }
 
     // Send web push notification if the recipient has a push subscription
@@ -176,7 +106,7 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    return res.status(200).json({ sent: true, id: emailData.id, pushSent });
+    return res.status(200).json({ sent: true, pushSent });
   } catch (err: any) {
     return res.status(500).json({ error: err.message ?? 'Unknown error' });
   }
@@ -191,8 +121,6 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
       recipientId: record.seller_id,
       title: 'New swipe request!',
       body: 'Someone wants you to place an order for them.',
-      lookupBuyerName: true,
-      includeOrderDetails: true,
     };
   }
 
