@@ -42,8 +42,8 @@ export function RootNavigator() {
     );
   }
 
-  // On web browser (not PWA), always show install prompt after login
-  if (Platform.OS === 'web' && !isStandalone && user) {
+  // On web browser (not PWA), always show install prompt — no login needed
+  if (Platform.OS === 'web' && !isStandalone) {
     return <InstallPromptScreen onDismiss={() => {}} />;
   }
 
