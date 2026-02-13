@@ -6,21 +6,22 @@ import {
   Pressable,
   StyleSheet,
 } from 'react-native';
-import { CAFE_77_MENU, type MenuItem } from '../lib/menu';
+import { type MenuCategory, type MenuItem } from '../lib/menu';
 import { SWIPE_VALUE } from '../lib/constants';
 import { theme } from '../lib/theme';
 
 interface MenuPickerProps {
+  menu: MenuCategory[];
   selections: Record<string, number>;
   onSelectionsChange: (selections: Record<string, number>) => void;
 }
 
-export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) {
-  const [activeCategory, setActiveCategory] = useState(CAFE_77_MENU[0].name);
+export function MenuPicker({ menu, selections, onSelectionsChange }: MenuPickerProps) {
+  const [activeCategory, setActiveCategory] = useState(menu[0].name);
 
   const total = useMemo(() => {
     let sum = 0;
-    for (const cat of CAFE_77_MENU) {
+    for (const cat of menu) {
       for (const item of cat.items) {
         sum += (selections[item.id] ?? 0) * item.price;
       }
@@ -33,7 +34,7 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
   }, [selections]);
 
   const activeItems = useMemo(
-    () => CAFE_77_MENU.find((c) => c.name === activeCategory)?.items ?? [],
+    () => menu.find((c) => c.name === activeCategory)?.items ?? [],
     [activeCategory],
   );
 
@@ -128,7 +129,7 @@ export function MenuPicker({ selections, onSelectionsChange }: MenuPickerProps) 
   return (
     <View style={styles.container}>
       <View style={styles.tabsContainer}>
-        {CAFE_77_MENU.map((cat) => (
+        {menu.map((cat) => (
           <Pressable
             key={cat.name}
             style={[

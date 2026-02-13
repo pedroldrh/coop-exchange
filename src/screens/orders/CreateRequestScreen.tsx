@@ -14,7 +14,7 @@ import { MenuPicker } from '../../components/MenuPicker';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
 import { WebContainer } from '../../components/ui/WebContainer';
-import { CAFE_77_MENU } from '../../lib/menu';
+import { LOCATIONS, type LocationKey } from '../../lib/menu';
 import { SWIPE_VALUE } from '../../lib/constants';
 import { showAlert } from '../../lib/utils';
 import { theme } from '../../lib/theme';
@@ -22,28 +22,30 @@ import { theme } from '../../lib/theme';
 type Props = NativeStackScreenProps<FeedStackParamList, 'CreateRequest'>;
 
 export function CreateRequestScreen({ route, navigation }: Props) {
-  const { postId, sellerId } = route.params;
+  const { postId, sellerId, location } = route.params;
   const { user } = useAuth();
   const createRequest = useCreateRequest();
+
+  const menu = LOCATIONS[location as LocationKey]?.menu ?? LOCATIONS.coop.menu;
 
   const [selections, setSelections] = useState<Record<string, number>>({});
   const [instructions, setInstructions] = useState('');
 
   const total = useMemo(() => {
     let sum = 0;
-    for (const cat of CAFE_77_MENU) {
+    for (const cat of menu) {
       for (const item of cat.items) {
         sum += (selections[item.id] ?? 0) * item.price;
       }
     }
     return Math.round(sum * 100) / 100;
-  }, [selections]);
+  }, [selections, menu]);
 
   const hasItems = Object.values(selections).some((qty) => qty > 0);
 
   const buildItemsText = useCallback(() => {
     const lines: string[] = [];
-    for (const cat of CAFE_77_MENU) {
+    for (const cat of menu) {
       for (const item of cat.items) {
         const qty = selections[item.id] ?? 0;
         if (qty > 0) {
@@ -54,7 +56,7 @@ export function CreateRequestScreen({ route, navigation }: Props) {
       }
     }
     return lines.join('\n');
-  }, [selections]);
+  }, [selections, menu]);
 
   const handleSubmit = useCallback(async () => {
     if (!user || !hasItems) return;
@@ -104,6 +106,7 @@ export function CreateRequestScreen({ route, navigation }: Props) {
 
           <View style={styles.menuContainer}>
             <MenuPicker
+              menu={menu}
               selections={selections}
               onSelectionsChange={setSelections}
             />

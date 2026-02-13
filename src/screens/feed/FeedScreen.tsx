@@ -79,6 +79,7 @@ export function FeedScreen({ navigation }: Props) {
         navigation.navigate('CreateRequest', {
           postId: post.id,
           sellerId: post.seller_id,
+          location: post.location ?? 'coop',
         });
       }
     },
@@ -92,7 +93,7 @@ export function FeedScreen({ navigation }: Props) {
         await createPost.mutateAsync({
           capacity_total: count,
           capacity_remaining: count,
-          location: 'Cafe 77',
+          location: 'coop',
           notes: null,
           max_value_hint: null,
         });
