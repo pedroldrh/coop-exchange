@@ -28,7 +28,7 @@ const STEPS = [
   {
     icon: '\u2705',
     title: 'Accept & Order',
-    body: 'If you\'re the sharer, you\'ll get a notification when someone requests. Accept it, place the order at the counter, and upload a screenshot of the receipt.',
+    body: 'If you\'re the sharer, you\'ll get a notification when someone requests. Accept it and place the order at the counter.',
   },
   {
     icon: '\uD83D\uDCF2',
