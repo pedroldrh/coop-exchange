@@ -19,12 +19,23 @@ export function NotificationPrompt({ visible, onEnable, onDismiss }: Props) {
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.icon}>{'\uD83D\uDD14'}</Text>
-          <Text style={styles.title}>Turn on notifications</Text>
+          <Text style={styles.icon}>{'\uD83D\uDEA8'}</Text>
+          <Text style={styles.title}>You NEED notifications on</Text>
           <Text style={styles.body}>
-            Get notified instantly when someone requests your swipes or accepts
-            your food request. Without notifications, you might miss time-sensitive
-            requests.
+            This is how you'll know when someone requests your swipes or when
+            your food request gets accepted.
+          </Text>
+          <View style={styles.warningBox}>
+            <Text style={styles.warningText}>
+              If you don't allow notifications, you{' '}
+              <Text style={styles.warningBold}>will miss requests</Text> and
+              won't know when someone needs your help or when your food is ready.
+            </Text>
+          </View>
+          <Text style={styles.instruction}>
+            Tap "Enable" below, then tap{' '}
+            <Text style={styles.instructionBold}>"Allow"</Text> on the next
+            popup.
           </Text>
 
           <TouchableOpacity
@@ -81,7 +92,34 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
-    marginBottom: 24,
+    marginBottom: 12,
+  },
+  warningBox: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    width: '100%',
+  },
+  warningText: {
+    fontSize: 13,
+    color: '#991B1B',
+    textAlign: 'center',
+    lineHeight: 19,
+  },
+  warningBold: {
+    fontWeight: '700',
+  },
+  instruction: {
+    fontSize: 13,
+    color: theme.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 20,
+  },
+  instructionBold: {
+    fontWeight: '700',
+    color: theme.colors.textPrimary,
   },
   enableButton: {
     backgroundColor: theme.colors.primary,
