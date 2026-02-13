@@ -59,13 +59,22 @@ export function InstallPromptScreen({ onDismiss: _onDismiss }: Props) {
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>1</Text>
                 <Text style={styles.stepText}>
-                  Tap the <Text style={styles.bold}>Share button</Text> at the
-                  bottom of Safari (the square with an arrow pointing up)
+                  Tap the{' '}
+                  <Text style={styles.bold}>three dots menu (...)</Text> at the
+                  bottom right of your screen
                 </Text>
               </View>
 
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>2</Text>
+                <Text style={styles.stepText}>
+                  Tap the <Text style={styles.bold}>Share button</Text> (the
+                  square with an arrow pointing up)
+                </Text>
+              </View>
+
+              <View style={styles.step}>
+                <Text style={styles.stepNumber}>3</Text>
                 <Text style={styles.stepText}>
                   Scroll down and tap{' '}
                   <Text style={styles.bold}>Add to Home Screen</Text>
@@ -73,14 +82,14 @@ export function InstallPromptScreen({ onDismiss: _onDismiss }: Props) {
               </View>
 
               <View style={styles.step}>
-                <Text style={styles.stepNumber}>3</Text>
+                <Text style={styles.stepNumber}>4</Text>
                 <Text style={styles.stepText}>
                   Tap <Text style={styles.bold}>Add</Text> in the top right
                 </Text>
               </View>
 
               <View style={styles.step}>
-                <Text style={styles.stepNumber}>4</Text>
+                <Text style={styles.stepNumber}>5</Text>
                 <Text style={styles.stepText}>
                   Open <Text style={styles.bold}>Foodie</Text> from your home
                   screen and sign in
