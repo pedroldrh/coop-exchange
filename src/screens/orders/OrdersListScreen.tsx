@@ -3,11 +3,8 @@ import {
   View,
   Text,
   FlatList,
-  Pressable,
   StyleSheet,
   RefreshControl,
-  ActivityIndicator,
-  Platform,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { OrdersStackParamList } from '../../types/navigation';
@@ -16,6 +13,7 @@ import { useMyRequests } from '../../hooks/use-requests';
 import { RequestCard } from '../../components/RequestCard';
 import { Loading } from '../../components/ui/Loading';
 import { WebContainer } from '../../components/ui/WebContainer';
+import { WebPullToRefresh } from '../../components/ui/WebPullToRefresh';
 import { theme } from '../../lib/theme';
 import type { Request, Profile, Post } from '../../types/database';
 
@@ -74,38 +72,25 @@ export function OrdersListScreen({ navigation }: Props) {
   return (
     <WebContainer>
       <View style={styles.container}>
-        <FlatList
-          data={requests}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={
-            Platform.OS === 'web' ? (
-              <Pressable
-                style={styles.webRefreshRow}
-                onPress={() => { if (!isRefetching) refetch(); }}
-                disabled={isRefetching}
-              >
-                {isRefetching ? (
-                  <ActivityIndicator size="small" color={theme.colors.primary} />
-                ) : (
-                  <Text style={styles.webRefreshText}>Tap to refresh</Text>
-                )}
-              </Pressable>
-            ) : undefined
-          }
-          ListEmptyComponent={renderEmpty}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
-              tintColor={theme.colors.primary}
-              colors={[theme.colors.primary]}
-              progressBackgroundColor={theme.colors.white}
-            />
-          }
-          showsVerticalScrollIndicator={false}
-        />
+        <WebPullToRefresh onRefresh={refetch} refreshing={isRefetching}>
+          <FlatList
+            data={requests}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={renderEmpty}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                tintColor={theme.colors.primary}
+                colors={[theme.colors.primary]}
+                progressBackgroundColor={theme.colors.white}
+              />
+            }
+            showsVerticalScrollIndicator={false}
+          />
+        </WebPullToRefresh>
       </View>
     </WebContainer>
   );
@@ -115,15 +100,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.gray50,
-  },
-  webRefreshRow: {
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  webRefreshText: {
-    fontSize: 13,
-    color: theme.colors.gray400,
-    fontWeight: '500',
   },
   listContent: {
     padding: 16,
