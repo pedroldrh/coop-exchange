@@ -13,6 +13,7 @@ export function OrdersStack() {
       screenOptions={{
         headerTintColor: theme.colors.primary,
         headerTitleStyle: { fontWeight: '600' },
+        headerTitleAlign: 'center',
       }}
     >
       <Stack.Screen
