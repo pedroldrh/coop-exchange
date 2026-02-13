@@ -54,7 +54,11 @@ export function InstallPromptScreen({ onDismiss: _onDismiss }: Props) {
         <View style={styles.card}>
           {isIOS ? (
             <>
-              <Text style={styles.stepTitle}>Follow these steps:</Text>
+              <Text style={styles.stepTitle}>For iPhone users:</Text>
+
+              <Text style={styles.sectionLabel}>
+                If you have the new iOS update (glass/liquid design):
+              </Text>
 
               <View style={styles.step}>
                 <Text style={styles.stepNumber}>1</Text>
@@ -81,18 +85,37 @@ export function InstallPromptScreen({ onDismiss: _onDismiss }: Props) {
                 </Text>
               </View>
 
+              <View style={styles.divider} />
+
+              <Text style={styles.sectionLabel}>
+                If you have an older iOS version:
+              </Text>
+
               <View style={styles.step}>
-                <Text style={styles.stepNumber}>4</Text>
+                <Text style={styles.stepNumber}>1</Text>
                 <Text style={styles.stepText}>
-                  Tap <Text style={styles.bold}>Add</Text> in the top right
+                  Tap the{' '}
+                  <Text style={styles.bold}>Share button</Text> (the square
+                  with an arrow pointing up) at the bottom of your screen
                 </Text>
               </View>
 
               <View style={styles.step}>
-                <Text style={styles.stepNumber}>5</Text>
+                <Text style={styles.stepNumber}>2</Text>
                 <Text style={styles.stepText}>
-                  Open <Text style={styles.bold}>Foodie</Text> from your home
-                  screen and sign in
+                  Scroll down and tap{' '}
+                  <Text style={styles.bold}>Add to Home Screen</Text>
+                </Text>
+              </View>
+
+              <View style={styles.divider} />
+
+              <View style={styles.step}>
+                <Text style={styles.stepNumber}>{'\u2713'}</Text>
+                <Text style={styles.stepText}>
+                  Tap <Text style={styles.bold}>Add</Text>, then open{' '}
+                  <Text style={styles.bold}>Foodie</Text> from your home screen
+                  and sign in
                 </Text>
               </View>
             </>
@@ -235,6 +258,17 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: theme.colors.textPrimary,
     lineHeight: 22,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.colors.inputBorder,
+    marginVertical: 16,
   },
   bold: {
     fontWeight: '700',
