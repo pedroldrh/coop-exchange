@@ -104,12 +104,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const verifyOtp = useCallback(async (email: string, token: string) => {
-    const { error } = await supabase.auth.verifyOtp({
+    // For existing users, Supabase creates a 'magiclink' type token.
+    // For new users, it creates a 'signup' type token.
+    // Try magiclink first, then fall back to signup.
+    const { error: mlError } = await supabase.auth.verifyOtp({
       email,
       token,
       type: 'magiclink',
     });
-    if (error) throw error;
+    if (!mlError) return;
+
+    const { error: suError } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+    if (suError) throw suError;
   }, []);
 
   const signOut = useCallback(async () => {
