@@ -5,7 +5,6 @@ import { RootStackParamList } from '../types/navigation';
 import { useAuth } from '../hooks/use-auth';
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { InstallPromptScreen } from '../screens/auth/InstallPromptScreen';
-import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 import { MainTabs } from './MainTabs';
 import { theme } from '../lib/theme';
 
@@ -31,7 +30,7 @@ const isStandalone =
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 export function RootNavigator() {
-  const { user, loading, profileComplete } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -50,11 +49,6 @@ export function RootNavigator() {
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {!user ? (
         <RootStack.Screen name="Auth" component={AuthNavigator} />
-      ) : !profileComplete ? (
-        <RootStack.Screen
-          name="ProfileSetup"
-          component={ProfileSetupScreen}
-        />
       ) : (
         <RootStack.Screen name="Main" component={MainTabs} />
       )}

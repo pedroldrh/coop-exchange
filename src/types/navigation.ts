@@ -12,7 +12,6 @@
 
 export type AuthStackParamList = {
   Login: undefined;
-  ProfileSetup: undefined;
 };
 
 /* ------------------------------------------------------------------ */
@@ -63,5 +62,4 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
-  ProfileSetup: undefined;
 };

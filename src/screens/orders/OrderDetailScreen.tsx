@@ -38,6 +38,7 @@ import { OrderActions } from '../../components/OrderActions';
 import { ProofImage } from '../../components/ProofImage';
 import { ChatSection } from '../../components/ChatSection';
 import { RatingModal } from '../../components/RatingModal';
+import { FizzShareModal } from '../../components/FizzShareModal';
 import { Avatar } from '../../components/Avatar';
 import { STATUS_LABELS } from '../../lib/constants';
 import type { RequestStatus } from '../../lib/constants';
@@ -78,6 +79,7 @@ export function OrderDetailScreen({ route }: Props) {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showFizzShareModal, setShowFizzShareModal] = useState(false);
 
   const isBuyer = user?.id === request?.buyer_id;
   const isSeller = user?.id === request?.seller_id;
@@ -244,6 +246,10 @@ export function OrderDetailScreen({ route }: Props) {
     }
   }, [requestId, disputeReason, disputeDescription, openDispute]);
 
+  const chainFizzModal = useCallback(() => {
+    setTimeout(() => setShowFizzShareModal(true), 300);
+  }, []);
+
   const handleSubmitRating = useCallback(
     async (stars: number, comment?: string) => {
       try {
@@ -253,11 +259,12 @@ export function OrderDetailScreen({ route }: Props) {
           comment,
         });
         setShowRatingModal(false);
+        chainFizzModal();
       } catch (err: any) {
         showAlert('Error', err?.message ?? 'Failed to submit rating');
       }
     },
-    [requestId, submitRating],
+    [requestId, submitRating, chainFizzModal],
   );
 
   if (isLoading || !request) {
@@ -484,9 +491,19 @@ export function OrderDetailScreen({ route }: Props) {
 
         <RatingModal
           visible={showRatingModal}
-          onClose={() => setShowRatingModal(false)}
+          onClose={() => {
+            setShowRatingModal(false);
+            chainFizzModal();
+          }}
           onSubmit={handleSubmitRating}
           loading={submitRating.isPending}
+        />
+
+        <FizzShareModal
+          visible={showFizzShareModal}
+          onClose={() => setShowFizzShareModal(false)}
+          requestId={requestId}
+          role={isSeller ? 'giver' : 'receiver'}
         />
       </View>
     </WebContainer>
