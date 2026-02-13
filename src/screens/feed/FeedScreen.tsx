@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   FlatList,
@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/use-auth';
 import { usePosts, useCreatePost } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
+import { HowItWorksModal } from '../../components/HowItWorksModal';
 import { Loading } from '../../components/ui/Loading';
 import { WebContainer } from '../../components/ui/WebContainer';
 import { WebPullToRefresh } from '../../components/ui/WebPullToRefresh';
@@ -34,6 +35,21 @@ export function FeedScreen({ navigation }: Props) {
   useAvatarGeneration();
   const createPost = useCreatePost();
   const [showSwipeModal, setShowSwipeModal] = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => setShowHowItWorks(true)}
+          style={styles.helpButton}
+          hitSlop={8}
+        >
+          <Text style={styles.helpButtonText}>?</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation]);
   const fabExpanded = useRef(false);
   const fabWidth = useRef(new Animated.Value(60)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
@@ -199,6 +215,11 @@ export function FeedScreen({ navigation }: Props) {
             </Pressable>
           </Pressable>
         </Modal>
+
+        <HowItWorksModal
+          visible={showHowItWorks}
+          onClose={() => setShowHowItWorks(false)}
+        />
       </View>
     </WebContainer>
   );
@@ -306,5 +327,19 @@ const styles = StyleSheet.create({
   modalHint: {
     fontSize: 13,
     color: theme.colors.gray400,
+  },
+  helpButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: theme.colors.primarySurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+  },
+  helpButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: theme.colors.primary,
   },
 });
