@@ -144,12 +144,17 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
           title: 'Your order is ready for pickup!',
           body: 'Head over to pick up your food.',
         };
-      case 'cancelled':
+      case 'cancelled': {
+        // Notify the other party based on who cancelled
+        const cancelledBySeller = record.cancelled_by === record.seller_id;
         return {
-          recipientId: record.seller_id,
-          title: 'Request cancelled',
-          body: 'A buyer cancelled their swipe request.',
+          recipientId: cancelledBySeller ? record.buyer_id : record.seller_id,
+          title: cancelledBySeller ? 'Request declined' : 'Request cancelled',
+          body: cancelledBySeller
+            ? 'The sharer declined your swipe request.'
+            : 'A buyer cancelled their swipe request.',
         };
+      }
       default:
         return null;
     }
