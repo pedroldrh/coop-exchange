@@ -79,8 +79,6 @@ export function OrderDetailScreen({ route }: Props) {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
-  const [showInitialsModal, setShowInitialsModal] = useState(false);
-  const [initials, setInitials] = useState('');
   const [showFizzShareModal, setShowFizzShareModal] = useState(false);
 
   const isBuyer = user?.id === request?.buyer_id;
@@ -150,10 +148,17 @@ export function OrderDetailScreen({ route }: Props) {
             await declineRequest.mutateAsync(requestId);
             break;
 
-          case 'mark_ordered':
-            setActionLoading(false);
-            setShowInitialsModal(true);
-            return;
+          case 'mark_ordered': {
+            // Extract initials from seller's email: rgood@mail.wlu.edu → RG
+            const emailPrefix = (user?.email ?? '').split('@')[0];
+            const autoInitials = (emailPrefix[0] + emailPrefix[1]).toUpperCase();
+            await markOrdered.mutateAsync({
+              requestId,
+              orderedProofPath: '',
+              orderIdText: autoInitials,
+            });
+            break;
+          }
 
           case 'mark_picked_up':
             await markPickedUp.mutateAsync(requestId);
@@ -196,25 +201,6 @@ export function OrderDetailScreen({ route }: Props) {
       uploadImage,
     ],
   );
-
-  const handleSubmitInitials = useCallback(async () => {
-    const trimmed = initials.trim().toUpperCase();
-    if (trimmed.length < 2) {
-      showAlert('Error', 'Please enter your initials (e.g. JD)');
-      return;
-    }
-    try {
-      await markOrdered.mutateAsync({
-        requestId,
-        orderedProofPath: '',
-        orderIdText: trimmed,
-      });
-      setShowInitialsModal(false);
-      setInitials('');
-    } catch (err: any) {
-      showAlert('Error', err?.message ?? 'Failed to mark as ordered');
-    }
-  }, [requestId, initials, markOrdered]);
 
   const handleSubmitCancel = useCallback(async () => {
     if (!cancelReason.trim()) {
@@ -477,32 +463,6 @@ export function OrderDetailScreen({ route }: Props) {
         </Modal>
 
         <Modal
-          visible={showInitialsModal}
-          onClose={() => setShowInitialsModal(false)}
-          title="Enter Your Initials"
-        >
-          <Text style={styles.initialsHint}>
-            The buyer will use your initials to find the order at the Coop pickup area.
-          </Text>
-          <Input
-            label="Your initials"
-            placeholder="e.g. JD"
-            value={initials}
-            onChangeText={(text: string) => setInitials(text.slice(0, 3).toUpperCase())}
-            autoCapitalize="characters"
-            maxLength={3}
-          />
-          <View style={styles.modalActions}>
-            <Button
-              title="Mark as Ordered"
-              onPress={handleSubmitInitials}
-              loading={markOrdered.isPending}
-              fullWidth
-            />
-          </View>
-        </Modal>
-
-        <Modal
           visible={showDisputeModal}
           onClose={() => setShowDisputeModal(false)}
           title="Open Dispute"
@@ -661,12 +621,6 @@ const styles = StyleSheet.create({
     color: '#047857',
     textAlign: 'center',
     lineHeight: 18,
-  },
-  initialsHint: {
-    fontSize: 14,
-    color: theme.colors.textSecondary,
-    marginBottom: 16,
-    lineHeight: 20,
   },
   modalActions: {
     marginTop: 8,
