@@ -132,12 +132,14 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
           title: 'Your request was accepted!',
           body: 'The sharer accepted your food request.',
         };
-      case 'ordered':
+      case 'ordered': {
+        const waitMins = getEstimatedWaitMinutes();
         return {
           recipientId: record.buyer_id,
           title: 'Your order has been placed!',
-          body: 'The sharer placed your Coop order.',
+          body: `The sharer placed your Coop order. It should be ready in about ${waitMins} minutes.`,
         };
+      }
       case 'picked_up':
         return {
           recipientId: record.buyer_id,
@@ -161,4 +163,21 @@ function getNotification(payload: WebhookPayload): NotificationInfo | null {
   }
 
   return null;
+}
+
+/** Estimate wait time based on Coop traffic at the current hour (Eastern Time). */
+function getEstimatedWaitMinutes(): number {
+  const now = new Date();
+  // Convert to Eastern Time
+  const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const hour = et.getHours();
+
+  // 10am–1pm: busy → 10 min
+  if (hour >= 10 && hour < 13) return 10;
+  // 7–9am: moderate → 5 min
+  if (hour >= 7 && hour < 10) return 5;
+  // 1–5pm: moderate → 5 min
+  if (hour >= 13 && hour < 17) return 5;
+  // Before 7am or after 5pm: quiet → 3 min
+  return 3;
 }
