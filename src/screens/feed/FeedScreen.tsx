@@ -79,7 +79,6 @@ export function FeedScreen({ navigation }: Props) {
         navigation.navigate('CreateRequest', {
           postId: post.id,
           sellerId: post.seller_id,
-          location: post.location ?? 'coop',
         });
       }
     },

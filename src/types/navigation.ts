@@ -22,7 +22,7 @@ export type FeedStackParamList = {
   Feed: undefined;
   CreatePost: undefined;
   PostDetail: { postId: string };
-  CreateRequest: { postId: string; sellerId: string; location: string };
+  CreateRequest: { postId: string; sellerId: string };
   OrderDetail: { requestId: string };
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  Pressable,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -22,16 +23,18 @@ import { theme } from '../../lib/theme';
 type Props = NativeStackScreenProps<FeedStackParamList, 'CreateRequest'>;
 
 export function CreateRequestScreen({ route, navigation }: Props) {
-  const { postId, sellerId, location } = route.params;
+  const { postId, sellerId } = route.params;
   const { user } = useAuth();
   const createRequest = useCreateRequest();
 
-  const menu = LOCATIONS[location as LocationKey]?.menu ?? LOCATIONS.coop.menu;
+  const [selectedLocation, setSelectedLocation] = useState<LocationKey | null>(null);
+  const menu = selectedLocation ? LOCATIONS[selectedLocation].menu : null;
 
   const [selections, setSelections] = useState<Record<string, number>>({});
   const [instructions, setInstructions] = useState('');
 
   const total = useMemo(() => {
+    if (!menu) return 0;
     let sum = 0;
     for (const cat of menu) {
       for (const item of cat.items) {
@@ -43,7 +46,13 @@ export function CreateRequestScreen({ route, navigation }: Props) {
 
   const hasItems = Object.values(selections).some((qty) => qty > 0);
 
+  const handleLocationChange = useCallback((key: LocationKey) => {
+    setSelectedLocation(key);
+    setSelections({});
+  }, []);
+
   const buildItemsText = useCallback(() => {
+    if (!menu) return '';
     const lines: string[] = [];
     for (const cat of menu) {
       for (const item of cat.items) {
@@ -101,42 +110,72 @@ export function CreateRequestScreen({ route, navigation }: Props) {
         <View style={styles.content}>
           <Text style={styles.heading}>Pick Your Food</Text>
           <Text style={styles.subheading}>
-            Choose items up to ${SWIPE_VALUE.toFixed(2)}
+            Where are you ordering from?
           </Text>
 
-          <View style={styles.menuContainer}>
-            <MenuPicker
-              menu={menu}
-              selections={selections}
-              onSelectionsChange={setSelections}
-            />
+          <View style={styles.locationButtons}>
+            {(Object.keys(LOCATIONS) as LocationKey[]).map((key) => (
+              <Pressable
+                key={key}
+                style={[
+                  styles.locationChip,
+                  selectedLocation === key && styles.locationChipActive,
+                ]}
+                onPress={() => handleLocationChange(key)}
+              >
+                <Text
+                  style={[
+                    styles.locationChipText,
+                    selectedLocation === key && styles.locationChipTextActive,
+                  ]}
+                >
+                  {LOCATIONS[key].label}
+                </Text>
+              </Pressable>
+            ))}
           </View>
 
-          <View style={styles.instructionsContainer}>
-            <Input
-              label="Special Instructions"
-              placeholder="e.g. no pickles, extra sauce"
-              value={instructions}
-              onChangeText={setInstructions}
-              multiline
-              numberOfLines={2}
-            />
-          </View>
+          {menu && (
+            <>
+              <Text style={styles.menuSubheading}>
+                Choose items up to ${SWIPE_VALUE.toFixed(2)}
+              </Text>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              title={
-                hasItems
-                  ? `Send Request \u2014 $${total.toFixed(2)}`
-                  : 'Select items to continue'
-              }
-              onPress={handleSubmit}
-              loading={createRequest.isPending}
-              fullWidth
-              size="lg"
-              disabled={!hasItems}
-            />
-          </View>
+              <View style={styles.menuContainer}>
+                <MenuPicker
+                  menu={menu}
+                  selections={selections}
+                  onSelectionsChange={setSelections}
+                />
+              </View>
+
+              <View style={styles.instructionsContainer}>
+                <Input
+                  label="Special Instructions"
+                  placeholder="e.g. no pickles, extra sauce"
+                  value={instructions}
+                  onChangeText={setInstructions}
+                  multiline
+                  numberOfLines={2}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <Button
+                  title={
+                    hasItems
+                      ? `Send Request \u2014 $${total.toFixed(2)}`
+                      : 'Select items to continue'
+                  }
+                  onPress={handleSubmit}
+                  loading={createRequest.isPending}
+                  fullWidth
+                  size="lg"
+                  disabled={!hasItems}
+                />
+              </View>
+            </>
+          )}
         </View>
       </KeyboardAvoidingView>
     </WebContainer>
@@ -163,6 +202,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: theme.colors.gray500,
     marginBottom: 12,
+  },
+  locationButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
+  },
+  locationChip: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: theme.colors.gray200,
+    backgroundColor: theme.colors.white,
+    alignItems: 'center',
+  },
+  locationChipActive: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.primarySurface,
+  },
+  locationChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.gray500,
+  },
+  locationChipTextActive: {
+    color: theme.colors.primary,
+  },
+  menuSubheading: {
+    fontSize: 14,
+    color: theme.colors.gray500,
+    marginBottom: 8,
   },
   menuContainer: {
     flex: 1,

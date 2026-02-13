@@ -21,7 +21,6 @@ import { RequestCard } from '../../components/RequestCard';
 import { Avatar } from '../../components/Avatar';
 import { formatDate } from '../../lib/utils';
 import { theme } from '../../lib/theme';
-import { LOCATIONS, type LocationKey } from '../../lib/menu';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'PostDetail'>;
 
@@ -42,7 +41,6 @@ export function PostDetailScreen({ route, navigation }: Props) {
     navigation.navigate('CreateRequest', {
       postId: post.id,
       sellerId: post.seller_id,
-      location: post.location ?? 'coop',
     });
   }, [navigation, post]);
 
@@ -109,9 +107,7 @@ export function PostDetailScreen({ route, navigation }: Props) {
           {post.location && (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Pickup Location</Text>
-              <Text style={styles.detailValue}>
-                {LOCATIONS[post.location as LocationKey]?.label ?? post.location}
-              </Text>
+              <Text style={styles.detailValue}>{post.location}</Text>
             </View>
           )}
 

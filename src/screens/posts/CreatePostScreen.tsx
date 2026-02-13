@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   StyleSheet,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,10 +19,10 @@ import { Button } from '../../components/ui/Button';
 import { WebContainer } from '../../components/ui/WebContainer';
 import { showAlert } from '../../lib/utils';
 import { theme } from '../../lib/theme';
-import { LOCATIONS, type LocationKey } from '../../lib/menu';
 
 type FormValues = {
   capacity_total: string;
+  location: string;
   notes: string;
   max_value_hint: string;
 };
@@ -33,7 +32,6 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 export function CreatePostScreen({ navigation }: Props) {
   const { user } = useAuth();
   const createPost = useCreatePost();
-  const [selectedLocation, setSelectedLocation] = useState<LocationKey | null>(null);
 
   const {
     control,
@@ -42,6 +40,7 @@ export function CreatePostScreen({ navigation }: Props) {
   } = useForm<FormValues>({
     defaultValues: {
       capacity_total: '',
+      location: '',
       notes: '',
       max_value_hint: '',
     },
@@ -49,11 +48,6 @@ export function CreatePostScreen({ navigation }: Props) {
 
   const onSubmit = async (data: FormValues) => {
     if (!user) return;
-
-    if (!selectedLocation) {
-      showAlert('Error', 'Please select a pickup location');
-      return;
-    }
 
     const capacityTotal = parseInt(data.capacity_total, 10);
     const maxValueHint = data.max_value_hint
@@ -64,7 +58,7 @@ export function CreatePostScreen({ navigation }: Props) {
       await createPost.mutateAsync({
         capacity_total: capacityTotal,
         capacity_remaining: capacityTotal,
-        location: selectedLocation,
+        location: data.location || null,
         notes: data.notes || null,
         max_value_hint: isNaN(maxValueHint as number) ? null : maxValueHint,
       });
@@ -108,30 +102,19 @@ export function CreatePostScreen({ navigation }: Props) {
               )}
             />
 
-            <View style={styles.locationSection}>
-              <Text style={styles.locationLabel}>Pickup Location *</Text>
-              <View style={styles.locationButtons}>
-                {(Object.keys(LOCATIONS) as LocationKey[]).map((key) => (
-                  <Pressable
-                    key={key}
-                    style={[
-                      styles.locationChip,
-                      selectedLocation === key && styles.locationChipActive,
-                    ]}
-                    onPress={() => setSelectedLocation(key)}
-                  >
-                    <Text
-                      style={[
-                        styles.locationChipText,
-                        selectedLocation === key && styles.locationChipTextActive,
-                      ]}
-                    >
-                      {LOCATIONS[key].label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
+            <Controller
+              control={control}
+              name="location"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Input
+                  label="Pickup Location"
+                  placeholder="Where should people pick up food?"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.location?.message}
+                />
+              )}
+            />
 
             <Controller
               control={control}
@@ -187,41 +170,6 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: 0,
-  },
-  locationSection: {
-    marginBottom: 16,
-  },
-  locationLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: theme.colors.gray700,
-    marginBottom: 8,
-  },
-  locationButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  locationChip: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: theme.colors.gray200,
-    backgroundColor: theme.colors.white,
-    alignItems: 'center',
-  },
-  locationChipActive: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primarySurface,
-  },
-  locationChipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.colors.gray500,
-  },
-  locationChipTextActive: {
-    color: theme.colors.primary,
   },
   buttonContainer: {
     marginTop: 8,

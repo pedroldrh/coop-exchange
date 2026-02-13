@@ -7,7 +7,6 @@ import { formatRelativeTime } from '../lib/utils';
 import { getTopBadge } from '../lib/badges';
 import { Avatar } from './Avatar';
 import { theme } from '../lib/theme';
-import { LOCATIONS, type LocationKey } from '../lib/menu';
 import type { Post, Profile } from '../types/database';
 
 type PostWithSeller = Post & {
@@ -66,7 +65,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
         </View>
 
         <Text style={styles.location} numberOfLines={1}>
-          {LOCATIONS[post.location as LocationKey]?.label ?? 'Coop (Cafe 77)'}
+          Coop &amp; E-Cafe
         </Text>
       </View>
     </Card>
