@@ -23,6 +23,14 @@ export async function registerServiceWorker() {
     document.head.appendChild(meta);
   }
 
+  // Inject apple-touch-icon so iOS uses the Foodie logo
+  if (!document.querySelector('link[rel="apple-touch-icon"]')) {
+    const icon = document.createElement('link');
+    icon.rel = 'apple-touch-icon';
+    icon.href = '/logo-192.png';
+    document.head.appendChild(icon);
+  }
+
   // Inject apple-mobile-web-app-capable meta for iOS PWA
   if (!document.querySelector('meta[name="apple-mobile-web-app-capable"]')) {
     const meta = document.createElement('meta');
