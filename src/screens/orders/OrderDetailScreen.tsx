@@ -79,6 +79,8 @@ export function OrderDetailScreen({ route }: Props) {
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showInitialsModal, setShowInitialsModal] = useState(false);
+  const [initials, setInitials] = useState('');
   const [showFizzShareModal, setShowFizzShareModal] = useState(false);
 
   const isBuyer = user?.id === request?.buyer_id;
@@ -149,12 +151,9 @@ export function OrderDetailScreen({ route }: Props) {
             break;
 
           case 'mark_ordered':
-            await markOrdered.mutateAsync({
-              requestId,
-              orderedProofPath: '',
-              orderIdText: '',
-            });
-            break;
+            setActionLoading(false);
+            setShowInitialsModal(true);
+            return;
 
           case 'mark_picked_up':
             await markPickedUp.mutateAsync(requestId);
@@ -197,6 +196,25 @@ export function OrderDetailScreen({ route }: Props) {
       uploadImage,
     ],
   );
+
+  const handleSubmitInitials = useCallback(async () => {
+    const trimmed = initials.trim().toUpperCase();
+    if (trimmed.length < 2) {
+      showAlert('Error', 'Please enter your initials (e.g. JD)');
+      return;
+    }
+    try {
+      await markOrdered.mutateAsync({
+        requestId,
+        orderedProofPath: '',
+        orderIdText: trimmed,
+      });
+      setShowInitialsModal(false);
+      setInitials('');
+    } catch (err: any) {
+      showAlert('Error', err?.message ?? 'Failed to mark as ordered');
+    }
+  }, [requestId, initials, markOrdered]);
 
   const handleSubmitCancel = useCallback(async () => {
     if (!cancelReason.trim()) {
@@ -329,6 +347,16 @@ export function OrderDetailScreen({ route }: Props) {
             )}
           </Card>
 
+          {request.order_id_text && isBuyer && (
+            <Card style={styles.pickupCard}>
+              <Text style={styles.pickupTitle}>Pickup Info</Text>
+              <Text style={styles.pickupInitials}>{request.order_id_text}</Text>
+              <Text style={styles.pickupHint}>
+                Look for this name/initials on the ticket at the Coop pickup area
+              </Text>
+            </Card>
+          )}
+
           {request.ordered_proof_path && (
             <Card style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>Order Proof</Text>
@@ -443,6 +471,32 @@ export function OrderDetailScreen({ route }: Props) {
               onPress={handleSubmitCancel}
               variant="danger"
               loading={cancelRequest.isPending}
+              fullWidth
+            />
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showInitialsModal}
+          onClose={() => setShowInitialsModal(false)}
+          title="Enter Your Initials"
+        >
+          <Text style={styles.initialsHint}>
+            The buyer will use your initials to find the order at the Coop pickup area.
+          </Text>
+          <Input
+            label="Your initials"
+            placeholder="e.g. JD"
+            value={initials}
+            onChangeText={(text: string) => setInitials(text.slice(0, 3).toUpperCase())}
+            autoCapitalize="characters"
+            maxLength={3}
+          />
+          <View style={styles.modalActions}>
+            <Button
+              title="Mark as Ordered"
+              onPress={handleSubmitInitials}
+              loading={markOrdered.isPending}
               fullWidth
             />
           </View>
@@ -581,6 +635,38 @@ const styles = StyleSheet.create({
   },
   proofContainer: {
     marginBottom: 12,
+  },
+  pickupCard: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  pickupTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#065F46',
+    marginBottom: 8,
+  },
+  pickupInitials: {
+    fontSize: 36,
+    fontWeight: '800',
+    color: '#065F46',
+    letterSpacing: 4,
+    marginBottom: 8,
+  },
+  pickupHint: {
+    fontSize: 13,
+    color: '#047857',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  initialsHint: {
+    fontSize: 14,
+    color: theme.colors.textSecondary,
+    marginBottom: 16,
+    lineHeight: 20,
   },
   modalActions: {
     marginTop: 8,
