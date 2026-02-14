@@ -154,7 +154,16 @@ export function FeedScreen({ navigation }: Props) {
             renderItem={renderItem}
             keyExtractor={keyExtractor}
             contentContainerStyle={styles.listContent}
-            ListHeaderComponent={<Leaderboard />}
+            ListHeaderComponent={
+              <>
+                <Leaderboard />
+                <View style={styles.impactBanner}>
+                  <Text style={styles.impactText}>
+                    50+ Gennies have eaten a free meal thanks to the Foodie community
+                  </Text>
+                </View>
+              </>
+            }
             ListEmptyComponent={renderEmpty}
             refreshControl={
               <RefreshControl
@@ -327,6 +336,21 @@ const styles = StyleSheet.create({
   modalHint: {
     fontSize: 13,
     color: theme.colors.gray400,
+  },
+  impactBanner: {
+    backgroundColor: theme.colors.primarySurface,
+    borderRadius: theme.radius.lg,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  impactText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.primary,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   helpButton: {
     width: 32,
