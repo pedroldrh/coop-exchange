@@ -12,7 +12,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
-import { usePosts, useCreatePost } from '../../hooks/use-posts';
+import { usePosts, useCreatePost, usePostsRealtime } from '../../hooks/use-posts';
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
 import { HowItWorksModal } from '../../components/HowItWorksModal';
@@ -21,10 +21,10 @@ import { WebContainer } from '../../components/ui/WebContainer';
 import { WebPullToRefresh } from '../../components/ui/WebPullToRefresh';
 import { useAvatarGeneration } from '../../hooks/use-avatar-generation';
 import { showAlert } from '../../lib/utils';
+import { FAB_COLLAPSED_WIDTH, FAB_EXPANDED_WIDTH } from '../../lib/constants';
 import { theme } from '../../lib/theme';
-import type { Post, Profile } from '../../types/database';
+import type { PostWithSeller } from '../../types/models';
 
-type PostWithSeller = Post & { seller: Profile };
 type Props = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
 
 const SWIPE_OPTIONS = [1, 2, 3, 4, 5];
@@ -33,6 +33,7 @@ export function FeedScreen({ navigation }: Props) {
   const { user, profile } = useAuth();
   const { data: posts, isLoading, refetch, isRefetching } = usePosts();
   useAvatarGeneration();
+  usePostsRealtime();
   const createPost = useCreatePost();
   const [showSwipeModal, setShowSwipeModal] = useState(false);
   const [showHowItWorks, setShowHowItWorks] = useState(false);
@@ -51,7 +52,7 @@ export function FeedScreen({ navigation }: Props) {
     });
   }, [navigation]);
   const fabExpanded = useRef(false);
-  const fabWidth = useRef(new Animated.Value(60)).current;
+  const fabWidth = useRef(new Animated.Value(FAB_COLLAPSED_WIDTH)).current;
   const textOpacity = useRef(new Animated.Value(0)).current;
 
   const handleFabPress = useCallback(() => {
@@ -59,7 +60,7 @@ export function FeedScreen({ navigation }: Props) {
       fabExpanded.current = true;
       Animated.parallel([
         Animated.spring(fabWidth, {
-          toValue: 220,
+          toValue: FAB_EXPANDED_WIDTH,
           useNativeDriver: false,
           friction: 7,
         }),
@@ -75,7 +76,7 @@ export function FeedScreen({ navigation }: Props) {
       fabExpanded.current = false;
       Animated.parallel([
         Animated.spring(fabWidth, {
-          toValue: 60,
+          toValue: FAB_COLLAPSED_WIDTH,
           useNativeDriver: false,
           friction: 7,
         }),
@@ -175,6 +176,9 @@ export function FeedScreen({ navigation }: Props) {
               />
             }
             showsVerticalScrollIndicator={false}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews
           />
 
         </WebPullToRefresh>

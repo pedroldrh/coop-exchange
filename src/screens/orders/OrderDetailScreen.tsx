@@ -1,11 +1,9 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Alert,
-  Platform,
   RefreshControl,
   Linking,
   Pressable,
@@ -13,19 +11,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../types/navigation';
 import { useAuth } from '../../hooks/use-auth';
-import {
-  useRequest,
-  useRequestRealtime,
-  useAcceptRequest,
-  useDeclineRequest,
-  useMarkOrdered,
-  useMarkPickedUp,
-  useMarkCompleted,
-  useCancelRequest,
-} from '../../hooks/use-requests';
-import { useRequestRating, useSubmitRating } from '../../hooks/use-ratings';
-import { useRequestDispute, useOpenDispute } from '../../hooks/use-disputes';
-import { useImageUpload } from '../../hooks/use-image-upload';
+import { useOrderDetailState } from '../../hooks/use-order-detail';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
@@ -42,7 +28,6 @@ import { FizzShareModal } from '../../components/FizzShareModal';
 import { Avatar } from '../../components/Avatar';
 import { STATUS_LABELS } from '../../lib/constants';
 import type { RequestStatus } from '../../lib/constants';
-import { showAlert } from '../../lib/utils';
 import { theme } from '../../lib/theme';
 
 type Props = NativeStackScreenProps<FeedStackParamList, 'OrderDetail'>;
@@ -50,220 +35,13 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'OrderDetail'>;
 export function OrderDetailScreen({ route }: Props) {
   const { requestId } = route.params;
   const { user } = useAuth();
+  const state = useOrderDetailState(requestId, user?.id);
 
-  const {
-    data: request,
-    isLoading,
-    refetch,
-    isRefetching,
-  } = useRequest(requestId);
-  const { data: ratings } = useRequestRating(requestId);
-  const { data: dispute } = useRequestDispute(requestId);
-
-  useRequestRealtime(requestId);
-
-  const acceptRequest = useAcceptRequest();
-  const declineRequest = useDeclineRequest();
-  const markOrdered = useMarkOrdered();
-  const markPickedUp = useMarkPickedUp();
-  const markCompleted = useMarkCompleted();
-  const cancelRequest = useCancelRequest();
-  const openDispute = useOpenDispute();
-  const submitRating = useSubmitRating();
-  const { pickImage, takePhoto, uploadImage, uploading } = useImageUpload();
-
-  const [actionLoading, setActionLoading] = useState(false);
-  const [showDisputeModal, setShowDisputeModal] = useState(false);
-  const [disputeReason, setDisputeReason] = useState('');
-  const [disputeDescription, setDisputeDescription] = useState('');
-  const [showRatingModal, setShowRatingModal] = useState(false);
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [showFizzShareModal, setShowFizzShareModal] = useState(false);
-
-  const isBuyer = user?.id === request?.buyer_id;
-  const isSeller = user?.id === request?.seller_id;
-  const roleLabel = isBuyer ? 'Requester' : isSeller ? 'Sharer' : '';
-
-  const hasRated =
-    ratings?.some((r) => r.rater_id === user?.id) ?? false;
-
-  useEffect(() => {
-    if (
-      request?.status === 'completed' &&
-      !hasRated &&
-      (isBuyer || isSeller)
-    ) {
-      const timer = setTimeout(() => setShowRatingModal(true), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [request?.status, hasRated, isBuyer, isSeller]);
-
-  const selectImage = useCallback((): Promise<string | null> => {
-    if (Platform.OS === 'web') {
-      return pickImage().catch(() => null);
-    }
-
-    return new Promise((resolve) => {
-      Alert.alert('Upload Proof', 'Choose a method', [
-        {
-          text: 'Take Photo',
-          onPress: async () => {
-            try {
-              const uri = await takePhoto();
-              resolve(uri);
-            } catch {
-              resolve(null);
-            }
-          },
-        },
-        {
-          text: 'Choose from Library',
-          onPress: async () => {
-            try {
-              const uri = await pickImage();
-              resolve(uri);
-            } catch {
-              resolve(null);
-            }
-          },
-        },
-        { text: 'Cancel', style: 'cancel', onPress: () => resolve(null) },
-      ]);
-    });
-  }, [pickImage, takePhoto]);
-
-  const handleAction = useCallback(
-    async (actionName: string) => {
-      if (!request || !user) return;
-      setActionLoading(true);
-
-      try {
-        switch (actionName) {
-          case 'accept':
-            await acceptRequest.mutateAsync(requestId);
-            break;
-
-          case 'decline':
-            await declineRequest.mutateAsync(requestId);
-            break;
-
-          case 'mark_ordered': {
-            // Extract initials from seller's email: rgood@mail.wlu.edu → RG
-            const emailPrefix = (user?.email ?? '').split('@')[0];
-            const autoInitials = (emailPrefix[0] + emailPrefix[1]).toUpperCase();
-            await markOrdered.mutateAsync({
-              requestId,
-              orderedProofPath: '',
-              orderIdText: autoInitials,
-            });
-            break;
-          }
-
-          case 'mark_picked_up':
-            await markPickedUp.mutateAsync(requestId);
-            break;
-
-          case 'mark_completed':
-            await markCompleted.mutateAsync(requestId);
-            break;
-
-          case 'cancel':
-            setShowCancelModal(true);
-            setActionLoading(false);
-            return;
-
-          case 'open_dispute':
-            setShowDisputeModal(true);
-            setActionLoading(false);
-            return;
-
-          default:
-            break;
-        }
-      } catch (err: any) {
-        showAlert('Error', err?.message ?? 'Action failed');
-      } finally {
-        setActionLoading(false);
-      }
-    },
-    [
-      request,
-      user,
-      requestId,
-      acceptRequest,
-      declineRequest,
-      markOrdered,
-      markPickedUp,
-      markCompleted,
-      cancelRequest,
-      selectImage,
-      uploadImage,
-    ],
-  );
-
-  const handleSubmitCancel = useCallback(async () => {
-    if (!cancelReason.trim()) {
-      showAlert('Error', 'Please provide a reason');
-      return;
-    }
-    try {
-      await cancelRequest.mutateAsync({
-        requestId,
-        reason: cancelReason.trim(),
-      });
-      setShowCancelModal(false);
-      setCancelReason('');
-    } catch (err: any) {
-      showAlert('Error', err?.message ?? 'Failed to cancel');
-    }
-  }, [requestId, cancelReason, cancelRequest]);
-
-  const handleSubmitDispute = useCallback(async () => {
-    if (!disputeReason.trim()) {
-      showAlert('Error', 'Please provide a reason');
-      return;
-    }
-
-    try {
-      await openDispute.mutateAsync({
-        requestId,
-        reason: disputeReason.trim(),
-        description: disputeDescription.trim(),
-      });
-      setShowDisputeModal(false);
-      setDisputeReason('');
-      setDisputeDescription('');
-    } catch (err: any) {
-      showAlert('Error', err?.message ?? 'Failed to open dispute');
-    }
-  }, [requestId, disputeReason, disputeDescription, openDispute]);
-
-  const chainFizzModal = useCallback(() => {
-    setTimeout(() => setShowFizzShareModal(true), 300);
-  }, []);
-
-  const handleSubmitRating = useCallback(
-    async (stars: number, comment?: string) => {
-      try {
-        await submitRating.mutateAsync({
-          requestId,
-          stars,
-          comment,
-        });
-        setShowRatingModal(false);
-        chainFizzModal();
-      } catch (err: any) {
-        showAlert('Error', err?.message ?? 'Failed to submit rating');
-      }
-    },
-    [requestId, submitRating, chainFizzModal],
-  );
-
-  if (isLoading || !request) {
+  if (state.isLoading || !state.request) {
     return <Loading message="Loading order..." />;
   }
 
+  const { request, dispute } = state;
   const statusColor = theme.statusColors[request.status] ?? theme.colors.gray500;
   const statusLabel =
     STATUS_LABELS[request.status as RequestStatus] ?? request.status;
@@ -275,8 +53,8 @@ export function OrderDetailScreen({ route }: Props) {
           contentContainerStyle={styles.scrollContent}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
+              refreshing={state.isRefetching}
+              onRefresh={state.refetch}
               tintColor={theme.colors.primary}
             />
           }
@@ -304,8 +82,8 @@ export function OrderDetailScreen({ route }: Props) {
             </View>
             <View style={styles.roleRow}>
               <Badge
-                label={`You are the ${roleLabel}`}
-                color={isBuyer ? theme.colors.primaryLight : theme.colors.primary}
+                label={`You are the ${state.roleLabel}`}
+                color={state.isBuyer ? theme.colors.primaryLight : theme.colors.primary}
                 variant="soft"
               />
               <Badge label={statusLabel} color={statusColor} variant="soft" />
@@ -317,14 +95,13 @@ export function OrderDetailScreen({ route }: Props) {
             <StatusTimeline currentStatus={request.status} />
           </Card>
 
+          {/* Request Details */}
           <Card style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Request Details</Text>
-
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Items</Text>
               <Text style={styles.infoValue}>{request.items_text}</Text>
             </View>
-
             {request.instructions && (
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Instructions</Text>
@@ -333,7 +110,8 @@ export function OrderDetailScreen({ route }: Props) {
             )}
           </Card>
 
-          {request.order_id_text && isBuyer && (
+          {/* Pickup Info */}
+          {request.order_id_text && state.isBuyer && (
             <Card style={styles.pickupCard}>
               <Text style={styles.pickupTitle}>Pickup Info</Text>
               <Text style={styles.pickupInitials}>{request.order_id_text}</Text>
@@ -343,6 +121,7 @@ export function OrderDetailScreen({ route }: Props) {
             </Card>
           )}
 
+          {/* Order Proof */}
           {request.ordered_proof_path && (
             <Card style={styles.sectionCard}>
               <Text style={styles.sectionTitle}>Order Proof</Text>
@@ -352,7 +131,8 @@ export function OrderDetailScreen({ route }: Props) {
             </Card>
           )}
 
-          {request.status === 'accepted' && isSeller && (
+          {/* Mobile Order Link */}
+          {request.status === 'accepted' && state.isSeller && (
             <Card style={styles.sectionCard}>
               <Pressable
                 style={({ pressed }) => [
@@ -373,6 +153,7 @@ export function OrderDetailScreen({ route }: Props) {
             </Card>
           )}
 
+          {/* Actions */}
           {request.status !== 'completed' &&
             request.status !== 'cancelled' &&
             request.status !== 'disputed' && (
@@ -381,12 +162,13 @@ export function OrderDetailScreen({ route }: Props) {
                 <OrderActions
                   request={request}
                   currentUserId={user!.id}
-                  onAction={handleAction}
-                  loading={actionLoading || uploading}
+                  onAction={state.handleAction}
+                  loading={state.actionLoading || state.uploading}
                 />
               </Card>
             )}
 
+          {/* Dispute Card */}
           {dispute && (
             <Card
               style={[
@@ -398,7 +180,6 @@ export function OrderDetailScreen({ route }: Props) {
               ]}
             >
               <Text style={styles.sectionTitle}>Dispute</Text>
-
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Status</Text>
                 <Badge
@@ -410,19 +191,16 @@ export function OrderDetailScreen({ route }: Props) {
                   variant="soft"
                 />
               </View>
-
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Reason</Text>
                 <Text style={styles.infoValue}>{dispute.reason}</Text>
               </View>
-
               {dispute.description && (
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Description</Text>
                   <Text style={styles.infoValue}>{dispute.description}</Text>
                 </View>
               )}
-
               {dispute.resolution && (
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Resolution</Text>
@@ -432,81 +210,84 @@ export function OrderDetailScreen({ route }: Props) {
             </Card>
           )}
 
+          {/* Messages */}
           <Card style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Messages</Text>
             <ChatSection requestId={requestId} currentUserId={user!.id} />
           </Card>
         </ScrollView>
 
+        {/* Cancel Modal */}
         <Modal
-          visible={showCancelModal}
-          onClose={() => setShowCancelModal(false)}
+          visible={state.showCancelModal}
+          onClose={() => state.setShowCancelModal(false)}
           title="Cancel Order"
         >
           <Input
             label="Reason *"
             placeholder="Why are you cancelling?"
-            value={cancelReason}
-            onChangeText={setCancelReason}
+            value={state.cancelReason}
+            onChangeText={state.setCancelReason}
             multiline
             numberOfLines={3}
           />
           <View style={styles.modalActions}>
             <Button
               title="Cancel Order"
-              onPress={handleSubmitCancel}
+              onPress={state.handleSubmitCancel}
               variant="danger"
-              loading={cancelRequest.isPending}
+              loading={state.cancelRequestPending}
               fullWidth
             />
           </View>
         </Modal>
 
+        {/* Dispute Modal */}
         <Modal
-          visible={showDisputeModal}
-          onClose={() => setShowDisputeModal(false)}
+          visible={state.showDisputeModal}
+          onClose={() => state.setShowDisputeModal(false)}
           title="Open Dispute"
         >
           <Input
             label="Reason *"
             placeholder="Brief reason for the dispute"
-            value={disputeReason}
-            onChangeText={setDisputeReason}
+            value={state.disputeReason}
+            onChangeText={state.setDisputeReason}
           />
           <Input
             label="Description"
             placeholder="Provide more details..."
-            value={disputeDescription}
-            onChangeText={setDisputeDescription}
+            value={state.disputeDescription}
+            onChangeText={state.setDisputeDescription}
             multiline
             numberOfLines={4}
           />
           <View style={styles.modalActions}>
             <Button
               title="Submit Dispute"
-              onPress={handleSubmitDispute}
+              onPress={state.handleSubmitDispute}
               variant="danger"
-              loading={openDispute.isPending}
+              loading={state.openDisputePending}
               fullWidth
             />
           </View>
         </Modal>
 
         <RatingModal
-          visible={showRatingModal}
+          visible={state.showRatingModal}
           onClose={() => {
-            setShowRatingModal(false);
-            chainFizzModal();
+            state.setShowRatingModal(false);
+            state.chainFizzModal();
           }}
-          onSubmit={handleSubmitRating}
-          loading={submitRating.isPending}
+          onSubmit={state.handleSubmitRating}
+          loading={state.submitRatingPending}
         />
 
         <FizzShareModal
-          visible={showFizzShareModal}
-          onClose={() => setShowFizzShareModal(false)}
+          visible={state.showFizzShareModal}
+          onClose={() => state.setShowFizzShareModal(false)}
           requestId={requestId}
-          role={isSeller ? 'giver' : 'receiver'}
+          role={state.isSeller ? 'giver' : 'receiver'}
         />
       </View>
     </WebContainer>
@@ -599,26 +380,26 @@ const styles = StyleSheet.create({
   pickupCard: {
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#ECFDF5',
+    backgroundColor: theme.colors.successSurface,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: theme.colors.successBorder,
   },
   pickupTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#065F46',
+    color: theme.colors.successDark,
     marginBottom: 8,
   },
   pickupInitials: {
     fontSize: 36,
     fontWeight: '800',
-    color: '#065F46',
+    color: theme.colors.successDark,
     letterSpacing: 4,
     marginBottom: 8,
   },
   pickupHint: {
     fontSize: 13,
-    color: '#047857',
+    color: theme.colors.successMedium,
     textAlign: 'center',
     lineHeight: 18,
   },

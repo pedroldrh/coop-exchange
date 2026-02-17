@@ -25,11 +25,13 @@ export function ProofImage({
 }: ProofImageProps) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [fullScreenVisible, setFullScreenVisible] = useState(false);
 
   useEffect(() => {
     if (!path) {
       setSignedUrl(null);
+      setError(false);
       return;
     }
 
@@ -37,16 +39,25 @@ export function ProofImage({
 
     async function fetchUrl() {
       setLoading(true);
+      setError(false);
       try {
-        const { data, error } = await supabase.storage
+        const { data, error: urlError } = await supabase.storage
           .from(bucket)
           .createSignedUrl(path!, 3600);
 
-        if (!cancelled && !error && data) {
+        if (cancelled) return;
+
+        if (urlError || !data) {
+          setError(true);
+          setSignedUrl(null);
+        } else {
           setSignedUrl(data.signedUrl);
         }
       } catch {
-        // Silently fail; show placeholder
+        if (!cancelled) {
+          setError(true);
+          setSignedUrl(null);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -78,6 +89,29 @@ export function ProofImage({
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={theme.colors.primary} />
         </View>
+      ) : error ? (
+        <Pressable
+          onPress={() => {
+            setError(false);
+            setLoading(true);
+            supabase.storage
+              .from(bucket)
+              .createSignedUrl(path!, 3600)
+              .then(({ data, error: retryError }) => {
+                if (retryError || !data) {
+                  setError(true);
+                } else {
+                  setSignedUrl(data.signedUrl);
+                }
+              })
+              .catch(() => setError(true))
+              .finally(() => setLoading(false));
+          }}
+          style={styles.placeholder}
+        >
+          <Text style={styles.placeholderText}>Failed to load image</Text>
+          <Text style={styles.retryText}>Tap to retry</Text>
+        </Pressable>
       ) : signedUrl ? (
         <Pressable
           onPress={() => setFullScreenVisible(true)}
@@ -91,7 +125,7 @@ export function ProofImage({
         </Pressable>
       ) : (
         <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>Failed to load image</Text>
+          <Text style={styles.placeholderText}>No image available</Text>
         </View>
       )}
 
@@ -157,6 +191,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.gray400,
     textAlign: 'center',
+  },
+  retryText: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    marginTop: 4,
+    fontWeight: '500',
   },
   loadingContainer: {
     width: 150,

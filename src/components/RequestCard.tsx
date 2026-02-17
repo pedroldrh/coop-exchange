@@ -5,13 +5,8 @@ import { Badge } from './ui/Badge';
 import { formatRelativeTime, truncateText } from '../lib/utils';
 import { STATUS_LABELS } from '../lib/constants';
 import { theme } from '../lib/theme';
-import type { Request, Profile } from '../types/database';
 import type { RequestStatus } from '../lib/constants';
-
-type RequestWithProfiles = Request & {
-  buyer: Profile;
-  seller: Profile;
-};
+import type { RequestWithProfiles } from '../types/models';
 
 interface RequestCardProps {
   request: RequestWithProfiles;
@@ -19,7 +14,7 @@ interface RequestCardProps {
   onPress: () => void;
 }
 
-export function RequestCard({
+export const RequestCard = React.memo(function RequestCard({
   request,
   currentUserId,
   onPress,
@@ -66,7 +61,7 @@ export function RequestCard({
       </View>
     </Card>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

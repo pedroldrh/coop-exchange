@@ -1,6 +1,8 @@
 /**
  * Generates a 6-digit verification code, stores its hash in the
  * verification_codes table, and emails the code via Resend.
+ *
+ * Rate-limited to 3 codes per email per 10 minutes.
  */
 import crypto from 'crypto';
 
@@ -12,7 +14,12 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email } = req.body ?? {};
-  if (!email || !email.endsWith('@mail.wlu.edu')) {
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  if (!trimmedEmail.endsWith('@mail.wlu.edu') || trimmedEmail.length > 100) {
     return res.status(400).json({ error: 'Valid @mail.wlu.edu email required' });
   }
 
@@ -30,9 +37,27 @@ export default async function handler(req: any, res: any) {
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
 
   try {
+    // Rate limit: max 3 codes per email per 10 minutes
+    const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const countRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/verification_codes?email=eq.${encodeURIComponent(trimmedEmail)}&created_at=gte.${encodeURIComponent(tenMinAgo)}&select=id`,
+      {
+        headers: {
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'apikey': SUPABASE_SERVICE_KEY,
+        },
+      },
+    );
+    if (countRes.ok) {
+      const recentCodes = await countRes.json();
+      if (recentCodes.length >= 3) {
+        return res.status(429).json({ error: 'Too many code requests. Please wait a few minutes.' });
+      }
+    }
+
     // Delete any existing codes for this email
     await fetch(
-      `${SUPABASE_URL}/rest/v1/verification_codes?email=eq.${encodeURIComponent(email)}`,
+      `${SUPABASE_URL}/rest/v1/verification_codes?email=eq.${encodeURIComponent(trimmedEmail)}`,
       {
         method: 'DELETE',
         headers: {
@@ -52,7 +77,7 @@ export default async function handler(req: any, res: any) {
         'Prefer': 'return=minimal',
       },
       body: JSON.stringify({
-        email,
+        email: trimmedEmail,
         code_hash: codeHash,
         expires_at: expiresAt,
       }),
@@ -72,7 +97,7 @@ export default async function handler(req: any, res: any) {
       },
       body: JSON.stringify({
         from: 'Foodie <notifications@foodie-co.com>',
-        to: [email],
+        to: [trimmedEmail],
         subject: 'Your Foodie verification code',
         html: `
           <div style="max-width:400px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">

@@ -15,13 +15,7 @@ import { Loading } from '../../components/ui/Loading';
 import { WebContainer } from '../../components/ui/WebContainer';
 import { WebPullToRefresh } from '../../components/ui/WebPullToRefresh';
 import { theme } from '../../lib/theme';
-import type { Request, Profile, Post } from '../../types/database';
-
-type RequestWithDetails = Request & {
-  buyer: Profile;
-  seller: Profile;
-  post: Post;
-};
+import type { RequestWithDetails } from '../../types/models';
 
 type Props = NativeStackScreenProps<OrdersStackParamList, 'OrdersList'>;
 
@@ -89,6 +83,9 @@ export function OrdersListScreen({ navigation }: Props) {
               />
             }
             showsVerticalScrollIndicator={false}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews
           />
         </WebPullToRefresh>
       </View>

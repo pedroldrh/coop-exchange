@@ -13,8 +13,20 @@ export default async function handler(req: any, res: any) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Validate auth (require Supabase JWT)
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
   const { userId, nickname } = req.body;
-  if (!userId || !nickname) return res.status(400).json({ error: 'userId and nickname required' });
+  if (!userId || typeof userId !== 'string' || !nickname || typeof nickname !== 'string') {
+    return res.status(400).json({ error: 'userId and nickname required' });
+  }
+
+  if (nickname.length > 50) {
+    return res.status(400).json({ error: 'Nickname too long' });
+  }
 
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;

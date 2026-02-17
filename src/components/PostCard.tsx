@@ -7,18 +7,14 @@ import { formatRelativeTime } from '../lib/utils';
 import { getTopBadge } from '../lib/badges';
 import { Avatar } from './Avatar';
 import { theme } from '../lib/theme';
-import type { Post, Profile } from '../types/database';
-
-type PostWithSeller = Post & {
-  seller: Profile;
-};
+import type { PostWithSeller } from '../types/models';
 
 interface PostCardProps {
   post: PostWithSeller;
   onPress: () => void;
 }
 
-export function PostCard({ post, onPress }: PostCardProps) {
+export const PostCard = React.memo(function PostCard({ post, onPress }: PostCardProps) {
   const swipes = post.capacity_remaining;
   const swipeColor =
     swipes === 0
@@ -70,7 +66,7 @@ export function PostCard({ post, onPress }: PostCardProps) {
       </View>
     </Card>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

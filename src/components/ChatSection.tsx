@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useMessages, useSendMessage, useMessagesRealtime } from '../hooks/use-messages';
+import { MAX_MESSAGE_LENGTH } from '../lib/constants';
 import { formatRelativeTime } from '../lib/utils';
 import { theme } from '../lib/theme';
 
@@ -134,7 +135,7 @@ export function ChatSection({ requestId, currentUserId }: ChatSectionProps) {
           placeholder="Type a message..."
           placeholderTextColor={theme.colors.gray400}
           multiline
-          maxLength={1000}
+          maxLength={MAX_MESSAGE_LENGTH}
         />
         <Pressable
           onPress={handleSend}

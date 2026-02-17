@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Input } from './ui/Input';
+import { MAX_ITEMS_TEXT_LENGTH } from '../lib/constants';
 import { theme } from '../lib/theme';
 
 interface ItemsInputProps {
@@ -9,7 +10,7 @@ interface ItemsInputProps {
   placeholder?: string;
 }
 
-const MAX_CHARS = 1000;
+const MAX_CHARS = MAX_ITEMS_TEXT_LENGTH;
 
 export function ItemsInput({
   value,

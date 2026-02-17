@@ -12,8 +12,18 @@ export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, code } = req.body ?? {};
-  if (!email || !code) {
+  if (!email || typeof email !== 'string' || !code || typeof code !== 'string') {
     return res.status(400).json({ error: 'Email and code are required' });
+  }
+
+  // Validate code format (must be exactly 6 digits)
+  if (!/^\d{6}$/.test(code)) {
+    return res.status(400).json({ error: 'Code must be a 6-digit number' });
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  if (!trimmedEmail.endsWith('@mail.wlu.edu')) {
+    return res.status(400).json({ error: 'Invalid email' });
   }
 
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -28,7 +38,7 @@ export default async function handler(req: any, res: any) {
   try {
     // Look up the stored code
     const lookupRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/verification_codes?email=eq.${encodeURIComponent(email)}&code_hash=eq.${codeHash}&select=id,expires_at`,
+      `${SUPABASE_URL}/rest/v1/verification_codes?email=eq.${encodeURIComponent(trimmedEmail)}&code_hash=eq.${codeHash}&select=id,expires_at`,
       {
         headers: {
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -71,22 +81,19 @@ export default async function handler(req: any, res: any) {
 
     // Try to create the user — if they already exist, that's fine
     const { error: createErr } = await supabaseAdmin.auth.admin.createUser({
-      email,
+      email: trimmedEmail,
       email_confirm: true,
     });
 
     if (createErr && !createErr.message?.includes('already been registered')) {
-      return res.status(500).json({
-        error: 'Failed to provision user',
-        details: createErr.message,
-      });
+      return res.status(500).json({ error: 'Failed to provision user' });
     }
 
     // Generate a magic link (gives us a verified token)
     const { data: linkData, error: linkErr } =
       await supabaseAdmin.auth.admin.generateLink({
         type: 'magiclink',
-        email,
+        email: trimmedEmail,
       });
 
     if (linkErr || !linkData) {

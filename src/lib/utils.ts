@@ -99,6 +99,26 @@ export function showAlert(title: string, message?: string): void {
 }
 
 /**
+ * Extract a user-friendly error message from an unknown error value.
+ * Standardizes the `err?.message ?? 'fallback'` pattern used across the app.
+ */
+export function extractErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as { message: unknown }).message);
+  }
+  return fallback;
+}
+
+/**
+ * Format a dollar amount consistently.
+ */
+export function formatCurrency(amount: number): string {
+  return `$${amount.toFixed(2)}`;
+}
+
+/**
  * Show a confirmation dialog. Returns `true` when the user confirms.
  * Uses `window.confirm` on web and `Alert.alert` with Cancel/OK on native.
  */

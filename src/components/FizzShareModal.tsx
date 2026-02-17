@@ -57,12 +57,16 @@ export function FizzShareModal({
     await Clipboard.setStringAsync(message);
     await AsyncStorage.setItem(storageKey, '1');
 
-    // Try deep link first, fall back to web
-    const canOpen = await Linking.canOpenURL('fizz://');
-    if (canOpen) {
-      await Linking.openURL('fizz://');
-    } else {
-      await Linking.openURL('https://fizz.social');
+    try {
+      // Try deep link first, fall back to web
+      const canOpen = await Linking.canOpenURL('fizz://');
+      if (canOpen) {
+        await Linking.openURL('fizz://');
+      } else {
+        await Linking.openURL('https://fizz.social');
+      }
+    } catch {
+      // Link opening failed silently — message was already copied
     }
 
     onClose();

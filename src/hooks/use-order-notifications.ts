@@ -28,11 +28,11 @@ export function useOrderNotifications() {
     if (!user) return;
 
     const channel = supabase
-      .channel('seller-new-requests')
+      .channel('seller-requests')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'requests',
           filter: `seller_id=eq.${user.id}`,

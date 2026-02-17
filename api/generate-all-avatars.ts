@@ -9,6 +9,12 @@ function nicknameToWords(nickname: string): string {
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Admin-only: require a secret header
+  const adminSecret = req.headers['x-admin-secret'];
+  if (!adminSecret || adminSecret !== process.env.ADMIN_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized — admin access required' });
+  }
+
   const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
   const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;

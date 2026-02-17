@@ -2,17 +2,8 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { Database } from '../types/database';
+import type { RequestWithDetails } from '../types/models';
 import { useAuth } from './use-auth';
-
-type Request = Database['public']['Tables']['requests']['Row'];
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type Post = Database['public']['Tables']['posts']['Row'];
-
-type RequestWithDetails = Request & {
-  buyer: Profile;
-  seller: Profile;
-  post: Post;
-};
 
 export function useRequest(requestId: string) {
   return useQuery<RequestWithDetails>({

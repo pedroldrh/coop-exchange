@@ -22,7 +22,7 @@ export function FeedStack() {
     >
       <Stack.Screen
         name="Feed"
-        component={FeedScreen as any}
+        component={FeedScreen}
         options={{
           headerTitle: () => (
             <Image
@@ -35,22 +35,22 @@ export function FeedStack() {
       />
       <Stack.Screen
         name="PostDetail"
-        component={PostDetailScreen as any}
+        component={PostDetailScreen}
         options={{ title: 'Swipe Details' }}
       />
       <Stack.Screen
         name="CreatePost"
-        component={CreatePostScreen as any}
+        component={CreatePostScreen}
         options={{ title: 'Create Post' }}
       />
       <Stack.Screen
         name="CreateRequest"
-        component={CreateRequestScreen as any}
+        component={CreateRequestScreen}
         options={{ title: 'Pick Your Food' }}
       />
       <Stack.Screen
         name="OrderDetail"
-        component={OrderDetailScreen as any}
+        component={OrderDetailScreen}
         options={{ title: 'Order Details' }}
       />
     </Stack.Navigator>

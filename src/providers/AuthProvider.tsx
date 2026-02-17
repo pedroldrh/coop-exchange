@@ -144,9 +144,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    console.log('[AuthProvider] refreshProfile: fetching profile for', userId);
+    if (__DEV__) console.log('[AuthProvider] refreshProfile: fetching profile for', userId);
     const fetched = await fetchProfile(userId);
-    console.log('[AuthProvider] refreshProfile: result =', fetched);
+    if (__DEV__) console.log('[AuthProvider] refreshProfile: result =', fetched);
   }, [fetchProfile]);
 
   // ------- derived state -------
@@ -156,13 +156,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Debug: log derived state changes so we can trace navigation decisions
   useEffect(() => {
-    console.log('[AuthProvider] state changed:', {
-      hasUser: !!user,
-      hasProfile: !!profile,
-      profileName: profile?.name ?? null,
-      profileComplete,
-      loading,
-    });
+    if (__DEV__) {
+      console.log('[AuthProvider] state changed:', {
+        hasUser: !!user,
+        hasProfile: !!profile,
+        profileName: profile?.name ?? null,
+        profileComplete,
+        loading,
+      });
+    }
   }, [user, profile, profileComplete, loading]);
 
   const value = useMemo<AuthContextValue>(

@@ -1,11 +1,20 @@
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
+import { extractErrorMessage, showAlert } from '../lib/utils';
+
+const mutationCache = new MutationCache({
+  onError: (error) => {
+    showAlert('Error', extractErrorMessage(error));
+  },
+});
 
 const queryClient = new QueryClient({
+  mutationCache,
   defaultOptions: {
     queries: {
-      staleTime: 30_000, // 30 seconds before data is considered stale
-      retry: 1,          // retry failed queries once
+      staleTime: 60_000,  // 60 seconds before data is considered stale
+      gcTime: 300_000,    // 5 minutes before unused data is garbage collected
+      retry: 1,           // retry failed queries once
     },
   },
 });

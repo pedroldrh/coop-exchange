@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { View, Text, Animated, Easing, StyleSheet, Platform } from 'react-native';
 import { useLeaderboard } from '../hooks/use-leaderboard';
 import { getTopBadge } from '../lib/badges';
@@ -36,9 +36,13 @@ export function Leaderboard() {
     };
   }, [leaders, translateX]);
 
-  if (!leaders || leaders.length === 0) return null;
+  // Only 2 copies needed for seamless looping (down from 3)
+  const items = useMemo(
+    () => (leaders ? [...leaders, ...leaders] : []),
+    [leaders],
+  );
 
-  const items = [...leaders, ...leaders, ...leaders];
+  if (!leaders || leaders.length === 0) return null;
 
   return (
     <View style={styles.container}>
@@ -78,8 +82,9 @@ export function Leaderboard() {
   );
 }
 
+// Web-only CSS property not in RN's ViewStyle types
 const webOverflowFix = Platform.OS === 'web'
-  ? { overflowX: 'hidden' as any }
+  ? { overflowX: 'hidden' as unknown as 'visible' }
   : {};
 
 const styles = StyleSheet.create({

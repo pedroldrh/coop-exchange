@@ -102,7 +102,22 @@ export default async function handler(req: any, res: any) {
           pushSent = true;
         }
       } catch (pushErr: any) {
-        console.warn('[send-push] Web push failed:', pushErr.message);
+        // If subscription is expired/invalid (410 Gone or 404), remove the stale token
+        if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?id=eq.${notification.recipientId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal',
+              },
+              body: JSON.stringify({ push_token: null }),
+            },
+          );
+        }
       }
     }
 

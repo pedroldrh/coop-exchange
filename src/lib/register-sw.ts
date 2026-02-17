@@ -43,8 +43,20 @@ export async function registerServiceWorker() {
 
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('[SW] Registered:', registration.scope);
+    if (__DEV__) console.log('[SW] Registered:', registration.scope);
+
+    // Check for updates
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (!newWorker) return;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+          // New version available — could prompt user to refresh
+          if (__DEV__) console.log('[SW] New version available');
+        }
+      });
+    });
   } catch (err) {
-    console.warn('[SW] Registration failed:', err);
+    if (__DEV__) console.warn('[SW] Registration failed:', err);
   }
 }

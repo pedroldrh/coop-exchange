@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   StyleSheet,
@@ -6,7 +6,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { theme } from '../lib/theme';
+
+const DISMISS_KEY = 'notif_prompt_dismissed_at';
+const DISMISS_DAYS = 7;
 
 interface Props {
   visible: boolean;
@@ -15,8 +19,27 @@ interface Props {
 }
 
 export function NotificationPrompt({ visible, onEnable, onDismiss }: Props) {
+  const [suppressed, setSuppressed] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(DISMISS_KEY).then((val) => {
+      if (!val) return;
+      const dismissedAt = parseInt(val, 10);
+      const elapsed = Date.now() - dismissedAt;
+      if (elapsed < DISMISS_DAYS * 24 * 60 * 60 * 1000) {
+        setSuppressed(true);
+      }
+    });
+  }, []);
+
+  const handleDismiss = () => {
+    AsyncStorage.setItem(DISMISS_KEY, String(Date.now()));
+    setSuppressed(true);
+    onDismiss();
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal visible={visible && !suppressed} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.card}>
           <Text style={styles.icon}>{'\uD83D\uDEA8'}</Text>
@@ -49,7 +72,7 @@ export function NotificationPrompt({ visible, onEnable, onDismiss }: Props) {
 
           <TouchableOpacity
             style={styles.laterButton}
-            onPress={onDismiss}
+            onPress={handleDismiss}
             activeOpacity={0.7}
           >
             <Text style={styles.laterText}>Maybe Later</Text>

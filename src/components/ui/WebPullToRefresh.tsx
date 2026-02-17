@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { PULL_REFRESH_THRESHOLD, PULL_REFRESH_DAMPENING } from '../../lib/constants';
 import { theme } from '../../lib/theme';
 
 interface WebPullToRefreshProps {
@@ -7,8 +8,6 @@ interface WebPullToRefreshProps {
   refreshing: boolean;
   children: React.ReactNode;
 }
-
-const THRESHOLD = 80;
 
 /**
  * Pull-to-refresh wrapper for web. Uses raw DOM touch events so it
@@ -24,10 +23,16 @@ export function WebPullToRefresh({ onRefresh, refreshing, children }: WebPullToR
   useEffect(() => {
     if (Platform.OS !== 'web') return;
 
-    const el = (containerRef.current as any)?._nativeTag ?? (containerRef.current as any);
-    // On RNW, the ref gives us the DOM node directly or via __nativeNode
+    // On RNW, the ref may expose the DOM node directly or via internal properties
+    const ref = containerRef.current as unknown as
+      | HTMLElement
+      | { _nativeTag?: HTMLElement; __nativeNode?: HTMLElement }
+      | null;
+    const el = ref instanceof HTMLElement ? ref : null;
     const node: HTMLElement | null =
-      el instanceof HTMLElement ? el : el?.__nativeNode ?? null;
+      el ?? (ref as { _nativeTag?: HTMLElement })?._nativeTag
+      ?? (ref as { __nativeNode?: HTMLElement })?.__nativeNode
+      ?? null;
     if (!node) return;
 
     function getScrollTop(): number {
@@ -59,7 +64,7 @@ export function WebPullToRefresh({ onRefresh, refreshing, children }: WebPullToR
         setPullDistance(0);
         return;
       }
-      const dampened = Math.min(dy * 0.4, THRESHOLD * 1.5);
+      const dampened = Math.min(dy * PULL_REFRESH_DAMPENING, PULL_REFRESH_THRESHOLD * 1.5);
       setPullDistance(dampened);
       if (dampened > 10) {
         e.preventDefault(); // prevent native scroll while pulling
@@ -69,7 +74,7 @@ export function WebPullToRefresh({ onRefresh, refreshing, children }: WebPullToR
     function onTouchEnd() {
       if (!pulling.current) return;
       pulling.current = false;
-      if (pullDistance >= THRESHOLD) {
+      if (pullDistance >= PULL_REFRESH_THRESHOLD) {
         onRefresh();
       }
       setPullDistance(0);
@@ -90,8 +95,8 @@ export function WebPullToRefresh({ onRefresh, refreshing, children }: WebPullToR
     return <>{children}</>;
   }
 
-  const showSpinner = refreshing || pullDistance >= THRESHOLD;
-  const indicatorHeight = refreshing ? 40 : Math.min(pullDistance, THRESHOLD) * (40 / THRESHOLD);
+  const showSpinner = refreshing || pullDistance >= PULL_REFRESH_THRESHOLD;
+  const indicatorHeight = refreshing ? 40 : Math.min(pullDistance, PULL_REFRESH_THRESHOLD) * (40 / PULL_REFRESH_THRESHOLD);
 
   return (
     <View ref={containerRef} style={styles.container}>

@@ -26,7 +26,7 @@ export function StarDisplay({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityLabel={`${rating.toFixed(1)} out of 5 stars`}>
       {stars.map((star, index) => {
         const isFilled = rating >= index + 0.5;
         return (

@@ -38,7 +38,7 @@ export function useImageUpload() {
 
     try {
       const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: 'base64' as any,
+        encoding: 'base64',
       });
 
       const filePath = `${requestId}/${type}_${Date.now()}.jpg`;

@@ -34,17 +34,6 @@ export const STATUS_LABELS: Record<RequestStatus, string> = {
   disputed: 'Disputed',
 };
 
-/** Color codes for each request status (mobile-friendly palette) */
-export const STATUS_COLORS: Record<RequestStatus, string> = {
-  requested: '#F59E0B', // amber
-  accepted: '#3B82F6',  // blue
-  ordered: '#6366F1',   // indigo
-  picked_up: '#0EA5E9', // sky
-  completed: '#22C55E', // green
-  cancelled: '#EF4444', // red
-  disputed: '#F97316',  // orange
-};
-
 /** User role preferences (DB uses 'buyer'/'seller' internally) */
 export const ROLE_PREFERENCE = {
   UPPERCLASSMAN: 'buyer',   // upperclassman requesting food
@@ -66,3 +55,20 @@ export const SWIPE_VALUE = 11.50;
 
 /** Supabase Storage bucket for proof images */
 export const PROOFS_BUCKET = 'proofs';
+
+/* ------------------------------------------------------------------ */
+/* UI constants                                                        */
+/* ------------------------------------------------------------------ */
+
+export const MAX_MESSAGE_LENGTH = 1000;
+export const MAX_CANCEL_REASON_LENGTH = 500;
+export const MAX_ITEMS_TEXT_LENGTH = 1000;
+export const MAX_COMMENT_LENGTH = 500;
+
+export const PULL_REFRESH_THRESHOLD = 80;
+export const PULL_REFRESH_DAMPENING = 0.4;
+
+export const FAB_EXPANDED_WIDTH = 220;
+export const FAB_COLLAPSED_WIDTH = 60;
+
+export const LEADERBOARD_DEFAULT_LIMIT = 5;

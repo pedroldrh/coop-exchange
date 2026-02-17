@@ -1,15 +1,9 @@
 import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { Database } from '../types/database';
+import type { Message, Profile } from '../types/database';
+import type { MessageWithSender } from '../types/models';
 import { useAuth } from './use-auth';
-
-type Message = Database['public']['Tables']['messages']['Row'];
-type Profile = Database['public']['Tables']['profiles']['Row'];
-
-type MessageWithSender = Message & {
-  sender: Profile;
-};
 
 export function useMessages(requestId: string) {
   return useQuery<MessageWithSender[]>({
@@ -81,15 +75,21 @@ export function useMessagesRealtime(requestId: string) {
           const newMessage = payload.new as Message;
 
           // Fetch the sender profile for the new message
-          const { data: sender } = await supabase
+          const { data: sender, error: senderError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', newMessage.sender_id)
             .single();
 
+          if (senderError || !sender) {
+            // Profile fetch failed — fall back to a full refetch
+            queryClient.invalidateQueries({ queryKey: ['messages', requestId] });
+            return;
+          }
+
           const messageWithSender: MessageWithSender = {
             ...newMessage,
-            sender: sender as Profile,
+            sender,
           };
 
           queryClient.setQueryData<MessageWithSender[]>(

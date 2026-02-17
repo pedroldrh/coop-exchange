@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider } from './src/providers/AuthProvider';
 import { QueryProvider } from './src/providers/QueryProvider';
 import { RootNavigator } from './src/navigation/RootNavigator';
+import { ErrorBoundary } from './src/components/ui/ErrorBoundary';
 import { supabaseConfigured } from './src/lib/supabase';
 import { theme } from './src/lib/theme';
 import { registerServiceWorker } from './src/lib/register-sw';
@@ -85,8 +86,9 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
   }
 }
 
+// Web-only CSS: maxWidth uses a CSS string value not in RN's ViewStyle
 const webClip = Platform.OS === 'web'
-  ? { overflow: 'hidden' as const, maxWidth: '100vw' as any }
+  ? { overflow: 'hidden' as const, maxWidth: '100vw' as unknown as number }
   : {};
 
 export default function App() {
@@ -108,14 +110,16 @@ export default function App() {
       <SafeAreaProvider>
         <QueryProvider>
           <AuthProvider>
-            <NavigationContainer
-              documentTitle={{
-                formatter: () => 'Foodie - Eat for Free',
-              }}
-            >
-              <RootNavigator />
-              <StatusBar style="auto" />
-            </NavigationContainer>
+            <ErrorBoundary>
+              <NavigationContainer
+                documentTitle={{
+                  formatter: () => 'Foodie - Eat for Free',
+                }}
+              >
+                <RootNavigator />
+                <StatusBar style="auto" />
+              </NavigationContainer>
+            </ErrorBoundary>
           </AuthProvider>
         </QueryProvider>
       </SafeAreaProvider>

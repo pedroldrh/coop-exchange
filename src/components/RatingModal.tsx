@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
+import { MAX_COMMENT_LENGTH } from '../lib/constants';
 import { theme } from '../lib/theme';
 
 interface RatingModalProps {
@@ -73,7 +74,7 @@ export function RatingModal({
           placeholderTextColor={theme.colors.gray400}
           multiline
           numberOfLines={3}
-          maxLength={500}
+          maxLength={MAX_COMMENT_LENGTH}
           textAlignVertical="top"
         />
 

@@ -36,6 +36,11 @@ export const theme = {
 
     surfaceBorder: '#E5E7EB',
 
+    successSurface: '#ECFDF5',
+    successBorder: '#A7F3D0',
+    successDark: '#065F46',
+    successMedium: '#047857',
+
     // Auth-screen colours (LoginScreen / ProfileSetupScreen)
     bg: '#F0F2F8',
     cardBg: '#FFFFFF',

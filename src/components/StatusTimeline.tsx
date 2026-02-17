@@ -25,7 +25,7 @@ export function StatusTimeline({ currentStatus }: StatusTimelineProps) {
   const activeIndex = isTerminal ? -1 : currentIndex;
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessibilityLabel={`Order status: ${STATUS_LABELS[currentStatus as RequestStatus] ?? currentStatus}`}>
       {/* Line track */}
       <View style={styles.trackRow}>
         {STATUS_FLOW.map((status, index) => {

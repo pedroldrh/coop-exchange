@@ -27,7 +27,7 @@ type FormValues = {
   max_value_hint: string;
 };
 
-type Props = NativeStackScreenProps<FeedStackParamList, 'Feed'>;
+type Props = NativeStackScreenProps<FeedStackParamList, 'CreatePost'>;
 
 export function CreatePostScreen({ navigation }: Props) {
   const { user } = useAuth();

@@ -54,7 +54,7 @@ export function useWebPush() {
       if (permission !== 'granted') return;
       await subscribeAndSave(user.id);
     } catch (err) {
-      console.warn('[WebPush] Setup failed:', err);
+      if (__DEV__) console.warn('[WebPush] Setup failed:', err);
     }
   }, [user]);
 
@@ -73,7 +73,7 @@ async function subscribeAndSave(userId: string) {
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
       });
     }
 
@@ -83,11 +83,11 @@ async function subscribeAndSave(userId: string) {
       .eq('id', userId);
 
     if (error) {
-      console.warn('[WebPush] Failed to save subscription:', error.message);
+      if (__DEV__) console.warn('[WebPush] Failed to save subscription:', error.message);
     } else {
-      console.log('[WebPush] Subscription saved');
+      if (__DEV__) console.log('[WebPush] Subscription saved');
     }
   } catch (err) {
-    console.warn('[WebPush] Subscribe failed:', err);
+    if (__DEV__) console.warn('[WebPush] Subscribe failed:', err);
   }
 }

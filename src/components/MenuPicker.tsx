@@ -27,7 +27,7 @@ export function MenuPicker({ menu, maxBudget, selections, onSelectionsChange }: 
       }
     }
     return Math.round(sum * 100) / 100;
-  }, [selections]);
+  }, [menu, selections]);
 
   const selectedCount = useMemo(() => {
     return Object.values(selections).reduce((a, b) => a + b, 0);
@@ -35,12 +35,12 @@ export function MenuPicker({ menu, maxBudget, selections, onSelectionsChange }: 
 
   const activeItems = useMemo(
     () => menu.find((c) => c.name === activeCategory)?.items ?? [],
-    [activeCategory],
+    [menu, activeCategory],
   );
 
   const canAddItem = useCallback(
     (item: MenuItem) => total + item.price <= maxBudget + 0.001,
-    [total],
+    [total, maxBudget],
   );
 
   const handleIncrement = useCallback(
