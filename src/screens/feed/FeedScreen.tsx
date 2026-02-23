@@ -16,6 +16,7 @@ import { usePosts, useCreatePost, usePostsRealtime } from '../../hooks/use-posts
 import { PostCard } from '../../components/PostCard';
 import { Leaderboard } from '../../components/Leaderboard';
 import { HowItWorksModal } from '../../components/HowItWorksModal';
+import { NotificationBell } from '../../components/NotificationBell';
 import { Loading } from '../../components/ui/Loading';
 import { WebContainer } from '../../components/ui/WebContainer';
 import { WebPullToRefresh } from '../../components/ui/WebPullToRefresh';
@@ -41,13 +42,16 @@ export function FeedScreen({ navigation }: Props) {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
-          onPress={() => setShowHowItWorks(true)}
-          style={styles.helpButton}
-          hitSlop={8}
-        >
-          <Text style={styles.helpButtonText}>?</Text>
-        </Pressable>
+        <View style={styles.headerRight}>
+          <NotificationBell />
+          <Pressable
+            onPress={() => setShowHowItWorks(true)}
+            style={styles.helpButton}
+            hitSlop={8}
+          >
+            <Text style={styles.helpButtonText}>?</Text>
+          </Pressable>
+        </View>
       ),
     });
   }, [navigation]);
@@ -355,6 +359,11 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   helpButton: {
     width: 32,
